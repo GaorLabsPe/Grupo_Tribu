@@ -162,6 +162,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const [password, setPassword] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [viewEntry, setViewEntry] = useState<Entrepreneur | null>(null);
+    const [editingMember, setEditingMember] = useState<Member | null>(null);
     const [activeTab, setActiveTab] = useState<'enrolled' | 'pending'>('enrolled');
 
     useEffect(() => {
@@ -230,6 +231,41 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             setViewEntry(null);
         } else {
             alert('Error al eliminar');
+        }
+    };
+
+    const handleDeleteMember = async (id: number) => {
+        if (!confirm('¿Seguro que quieres eliminar este pre-registro de la lista de espera?')) return;
+        const { error } = await supabase.from('members').delete().eq('id', id);
+        if (!error) {
+            setMembers(members.filter(m => m.id !== id));
+        } else {
+            alert('Error al eliminar miembro. Verifica tu conexión.');
+        }
+    };
+
+    const handleUpdateMember = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingMember) return;
+        
+        try {
+            const { error } = await supabase
+                .from('members')
+                .update({
+                    name: editingMember.name,
+                    business_name: editingMember.business_name,
+                    phone: editingMember.phone.replace(/\D/g, '')
+                })
+                .eq('id', editingMember.id);
+            
+            if (error) throw error;
+            
+            setMembers(members.map(m => m.id === editingMember.id ? editingMember : m));
+            setEditingMember(null);
+            alert('Datos actualizados correctamente');
+        } catch (err: any) {
+            console.error(err);
+            alert('Error al actualizar datos');
         }
     };
 
@@ -451,13 +487,30 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                         <td>{member.phone}</td>
                                         <td><span className="badge-cat" style={{background: '#ffeaa7', color: '#d35400'}}>Pendiente</span></td>
                                         <td>
-                                            <a 
-                                                href={`https://wa.me/51${member.phone}?text=Hola%20${member.name},%20vimos%20que%20te%20registraste%20en%20La%20Tribu%20pero%20falta%20terminar%20tu%20ficha%20con%20la%20foto%20del%20premio.%20¿Necesitas%20ayuda?`} 
-                                                target="_blank" 
-                                                className="btn-whatsapp-small"
-                                            >
-                                                <WhatsAppIcon /> Cobrar Ficha
-                                            </a>
+                                            <div className="action-buttons-row">
+                                                <button 
+                                                    onClick={() => setEditingMember(member)} 
+                                                    className="btn-icon-action text-blue" 
+                                                    title="Editar Datos"
+                                                >
+                                                    <EditIcon />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDeleteMember(member.id)} 
+                                                    className="btn-icon-action text-red" 
+                                                    title="Eliminar de la lista"
+                                                >
+                                                    <TrashIcon />
+                                                </button>
+                                                <a 
+                                                    href={`https://wa.me/51${member.phone}?text=Hola%20${member.name},%20vimos%20que%20te%20registraste%20en%20La%20Tribu%20pero%20falta%20terminar%20tu%20ficha%20con%20la%20foto%20del%20premio.%20¿Necesitas%20ayuda?`} 
+                                                    target="_blank" 
+                                                    className="btn-whatsapp-small"
+                                                    title="Enviar WhatsApp"
+                                                >
+                                                    <WhatsAppIcon />
+                                                </a>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -473,6 +526,52 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     )}
                 </div>
             </div>
+
+            {/* EDIT MEMBER MODAL */}
+            {editingMember && (
+                <div className="modal-overlay">
+                    <div className="modal-content" style={{maxWidth: '450px'}}>
+                        <button className="close-btn" onClick={() => setEditingMember(null)}><XIcon /></button>
+                        <div className="modal-header">
+                            <h2>Editar Pre-registro</h2>
+                            <p>Corrige los datos del miembro pendiente.</p>
+                        </div>
+                        <form onSubmit={handleUpdateMember} className="clean-form">
+                            <div className="form-group">
+                                <label>Nombre</label>
+                                <input 
+                                    type="text" 
+                                    value={editingMember.name} 
+                                    onChange={(e) => setEditingMember({...editingMember, name: e.target.value})}
+                                    required 
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Negocio</label>
+                                <input 
+                                    type="text" 
+                                    value={editingMember.business_name} 
+                                    onChange={(e) => setEditingMember({...editingMember, business_name: e.target.value})}
+                                    required 
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Celular</label>
+                                <input 
+                                    type="tel" 
+                                    value={editingMember.phone} 
+                                    onChange={(e) => setEditingMember({...editingMember, phone: e.target.value})}
+                                    required 
+                                />
+                            </div>
+                            <div className="form-footer" style={{display: 'flex', gap: '10px', marginTop: '20px'}}>
+                                <button type="button" onClick={() => setEditingMember(null)} className="btn btn-outline btn-block">Cancelar</button>
+                                <button type="submit" className="btn btn-primary btn-block">Guardar Cambios</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {/* DETAIL MODAL */}
             {viewEntry && (
