@@ -74,6 +74,14 @@ const StarIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="#ffd700" stroke="#b39200" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
 );
 
+const StarFilledIcon = ({ size = 20, color = "#f1c40f" }: { size?: number, color?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+);
+
+const StarOutlineIcon = ({ size = 20 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+);
+
 const UserIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
 );
@@ -130,6 +138,7 @@ interface Entrepreneur {
   phone: string;
   description: string;
   category: string;
+  isFeatured?: boolean;
 }
 
 interface Member {
@@ -183,10 +192,11 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const fetchData = async () => {
         setLoading(true);
         
-        // Fetch Enrolled Entrepreneurs
+        // Fetch Enrolled Entrepreneurs sort by is_featured then created_at
         const { data: entData } = await supabase
             .from('entrepreneurs')
             .select('*')
+            .order('is_featured', { ascending: false })
             .order('created_at', { ascending: false });
 
         if (entData) {
@@ -205,7 +215,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   tiktok: item.tiktok,
                   website: item.website,
                   description: item.description,
-                  category: item.category
+                  category: item.category,
+                  isFeatured: item.is_featured
               }));
             setEntries(mappedEntries);
         }
@@ -222,6 +233,28 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
         setLoading(false);
     };
+
+    const handleToggleFeatured = async (id: string, currentStatus: boolean) => {
+        try {
+            const { error } = await supabase
+                .from('entrepreneurs')
+                .update({ is_featured: !currentStatus })
+                .eq('id', id);
+
+            if (error) throw error;
+            
+            // Update local state locally to reflect change immediately
+            setEntries(entries.map(e => e.id === id ? { ...e, isFeatured: !currentStatus } : e).sort((a, b) => {
+                 // Sort locally so it jumps to top
+                 if (a.isFeatured === b.isFeatured) return 0;
+                 return a.isFeatured ? -1 : 1;
+            }));
+
+        } catch (err) {
+            console.error('Error updating featured status:', err);
+            alert('Error al actualizar estado destacado');
+        }
+    }
 
     const handleDelete = async (id: string) => {
         if (!confirm('¿Seguro que quieres eliminar este registro?')) return;
@@ -433,18 +466,19 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                     <th>Dueño</th>
                                     <th>Contacto</th>
                                     <th>Premio</th>
-                                    <th>Valor</th>
+                                    <th>Valor (S/)</th>
                                     <th>Rubro</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {entries.map(entry => (
-                                    <tr key={entry.id}>
+                                    <tr key={entry.id} className={entry.isFeatured ? 'featured-row' : ''}>
                                         <td>
                                             <div className="cell-flex">
                                                 <img src={entry.logoImage} className="table-img" alt=""/>
                                                 <strong>{entry.name}</strong>
+                                                {entry.isFeatured && <StarFilledIcon size={14} />}
                                             </div>
                                         </td>
                                         <td>{entry.ownerName}</td>
@@ -457,12 +491,22 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                         <td>{entry.value}</td>
                                         <td><span className="badge-cat">{entry.category}</span></td>
                                         <td>
-                                            <button onClick={() => setViewEntry(entry)} className="btn-icon-delete" style={{marginRight: '8px', color: '#0984e3'}}>
-                                                <EyeIcon />
-                                            </button>
-                                            <button onClick={() => handleDelete(entry.id)} className="btn-icon-delete">
-                                                <TrashIcon />
-                                            </button>
+                                            <div className="action-buttons-row">
+                                                <button 
+                                                    onClick={() => handleToggleFeatured(entry.id, !!entry.isFeatured)} 
+                                                    className="btn-icon-action"
+                                                    title={entry.isFeatured ? "Quitar Destacado" : "Destacar Primero"}
+                                                    style={{color: entry.isFeatured ? '#f1c40f' : '#b2bec3'}}
+                                                >
+                                                    {entry.isFeatured ? <StarFilledIcon /> : <StarOutlineIcon />}
+                                                </button>
+                                                <button onClick={() => setViewEntry(entry)} className="btn-icon-action text-blue" style={{marginRight: '8px'}}>
+                                                    <EyeIcon />
+                                                </button>
+                                                <button onClick={() => handleDelete(entry.id)} className="btn-icon-action text-red">
+                                                    <TrashIcon />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -876,6 +920,7 @@ function App() {
           const { data, error } = await supabase
               .from('entrepreneurs')
               .select('*')
+              .order('is_featured', { ascending: false })
               .order('created_at', { ascending: false });
           
           if (error) throw error;
@@ -896,7 +941,8 @@ function App() {
                   tiktok: item.tiktok,
                   website: item.website,
                   description: item.description,
-                  category: item.category
+                  category: item.category,
+                  isFeatured: item.is_featured
               }));
               setEntries(mappedEntries);
           }
@@ -1040,6 +1086,12 @@ function App() {
 
         const formattedInsta = instagram.startsWith('@') ? instagram : (instagram ? `@${instagram}` : '');
         const finalCategory = formCategory === 'Otro' ? customCategory.trim() : formCategory;
+        
+        // Force currency symbol for Soles
+        let formattedValue = value;
+        if (!formattedValue.toUpperCase().includes('S/')) {
+            formattedValue = `S/ ${formattedValue.replace('$', '')}`;
+        }
 
         const { error: insertError } = await supabase
             .from('entrepreneurs')
@@ -1049,7 +1101,7 @@ function App() {
                     owner_name: ownerName,
                     phone: validationPhone, // Already clean
                     prize: prize,
-                    prize_value: value.includes('$') ? value : `$${value}`,
+                    prize_value: formattedValue,
                     prize_image_url: finalPrizeImageUrl,
                     logo_image_url: finalLogoImageUrl,
                     instagram: formattedInsta,
@@ -1208,6 +1260,7 @@ function App() {
                             <div className="image-wrapper">
                                 <img src={entry.prizeImage} alt={entry.prize} />
                                 <span className="category-badge-overlay">{entry.category}</span>
+                                {entry.isFeatured && <div className="featured-badge"><StarFilledIcon size={12} /> Destacado</div>}
                             </div>
                             <div className="artwork-info">
                                 <div className="artwork-header">
@@ -1757,7 +1810,7 @@ function App() {
                         <input
                         type="text"
                         id="value"
-                        placeholder="Ej. S/ 50.00"
+                        placeholder="Ej. 50.00"
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         required
@@ -1849,7 +1902,7 @@ function App() {
                             <div className="artwork-info">
                                 <div className="artwork-header">
                                   <h4>{businessName}</h4>
-                                  <span className="price-badge">{value}</span>
+                                  <span className="price-badge">{value.includes('S/') ? value : `S/ ${value}`}</span>
                                 </div>
                                 <p className="artwork-prize">{prize}</p>
                                 <div className="artwork-footer" style={{display: 'flex', gap: '5px', flexWrap: 'wrap'}}>
