@@ -309,8 +309,9 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     }, 0);
 
     // Compute Pending Users (In Member table but NOT in Entrepreneurs table)
-    const enrolledPhones = new Set(entries.map(e => e.phone));
-    const pendingMembers = members.filter(m => !enrolledPhones.has(m.phone));
+    // IMPORTANT: Clean phones before comparing to avoid formatting issues (999-123 vs 999123)
+    const enrolledPhones = new Set(entries.map(e => e.phone.replace(/\D/g, '')));
+    const pendingMembers = members.filter(m => !enrolledPhones.has(m.phone.replace(/\D/g, '')));
 
     if (!isAuthenticated) {
         return (
@@ -850,6 +851,7 @@ function App() {
             .single();
 
         if (data) {
+            setValidationPhone(cleanPhone); // Update state to clean number for consistency
             setOwnerName(data.name || '');
             if (data.business_name) setBusinessName(data.business_name);
             setModalStep('form');
@@ -946,7 +948,7 @@ function App() {
                 {
                     business_name: businessName,
                     owner_name: ownerName,
-                    phone: validationPhone,
+                    phone: validationPhone, // Already clean
                     prize: prize,
                     prize_value: value.includes('$') ? value : `$${value}`,
                     prize_image_url: finalPrizeImageUrl,
