@@ -69,6 +69,30 @@ const LoaderIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="spinner"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
 );
 
+const WhatsAppIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+);
+
+const InfoIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+);
+
+const LockIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+);
+
+const TrashIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+);
+
+const DownloadIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+);
+
+const PlusIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+);
+
 interface Entrepreneur {
   id: string;
   name: string; // Business Name
@@ -95,11 +119,393 @@ const PREDEFINED_CATEGORIES = [
   "Otro"
 ];
 
+const SECRET_ACCESS_CODE = "TRIBU2024";
+const ADMIN_PASSWORD = "ADMIN123";
+
+// --- ADMIN DASHBOARD COMPONENT ---
+function AdminDashboard({ onLogout }: { onLogout: () => void }) {
+    const [entries, setEntries] = useState<Entrepreneur[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [password, setPassword] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetchData();
+        }
+    }, [isAuthenticated]);
+
+    const handleLogin = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (password === ADMIN_PASSWORD) {
+            setIsAuthenticated(true);
+        } else {
+            alert('Contraseña incorrecta');
+        }
+    };
+
+    const fetchData = async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('entrepreneurs')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (data) {
+             const mappedEntries: Entrepreneur[] = data.map(item => ({
+                  id: item.id,
+                  name: item.business_name,
+                  ownerName: item.owner_name,
+                  phone: item.phone,
+                  prize: item.prize,
+                  value: item.prize_value,
+                  prizeImage: item.prize_image_url,
+                  logoImage: item.logo_image_url,
+                  date: new Date(item.created_at),
+                  instagram: item.instagram,
+                  description: item.description,
+                  category: item.category
+              }));
+            setEntries(mappedEntries);
+        }
+        setLoading(false);
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm('¿Seguro que quieres eliminar este registro?')) return;
+        const { error } = await supabase.from('entrepreneurs').delete().eq('id', id);
+        if (!error) {
+            setEntries(entries.filter(e => e.id !== id));
+        } else {
+            alert('Error al eliminar');
+        }
+    };
+
+    const generateSeedData = async () => {
+        setIsGenerating(true);
+        const seedData = [
+            {
+                business_name: 'Burger House',
+                owner_name: 'Carlos Ruiz',
+                phone: '999000111',
+                prize: 'Pack Familiar Royal',
+                prize_value: 'S/ 85.00',
+                prize_image_url: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=600&auto=format&fit=crop&q=60',
+                logo_image_url: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=150&auto=format&fit=crop&q=60',
+                instagram: '@burgerhouse_test',
+                description: 'Las mejores hamburguesas artesanales de la ciudad con carne 100% premium.',
+                category: 'Gastronomía'
+            },
+            {
+                business_name: 'Moda Chic',
+                owner_name: 'Ana López',
+                phone: '999000222',
+                prize: 'Outfit Verano 2024',
+                prize_value: 'S/ 120.00',
+                prize_image_url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=60',
+                logo_image_url: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=150&auto=format&fit=crop&q=60',
+                instagram: '@modachic_peru',
+                description: 'Tendencias y estilo para la mujer moderna.',
+                category: 'Moda'
+            },
+            {
+                business_name: 'Tech Store',
+                owner_name: 'Jorge M.',
+                phone: '999000333',
+                prize: 'Audífonos Bluetooth Pro',
+                prize_value: 'S/ 60.00',
+                prize_image_url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=60',
+                logo_image_url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=150&auto=format&fit=crop&q=60',
+                instagram: '@techstore_lima',
+                description: 'Gadgets y accesorios tecnológicos al mejor precio.',
+                category: 'Tecnología'
+            }
+        ];
+
+        try {
+            const { error } = await supabase.from('entrepreneurs').insert(seedData);
+            if (error) throw error;
+            alert('¡3 Emprendedores de prueba creados con éxito!');
+            fetchData();
+        } catch (err: any) {
+            console.error(err);
+            alert('Error creando datos: ' + err.message);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const downloadCSV = () => {
+        const headers = ["ID", "Negocio", "Dueño", "Celular", "Premio", "Valor", "Instagram", "Categoría"];
+        const csvContent = [
+            headers.join(","),
+            ...entries.map(e => [e.id, e.name, e.ownerName, e.phone, e.prize, e.value, e.instagram, e.category].join(","))
+        ].join("\n");
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `tribu_emprendedores_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+    };
+
+    // Calculate Stats
+    const totalValue = entries.reduce((acc, curr) => {
+        // Clean value string (remove non-digits except dots)
+        const val = parseFloat(curr.value.replace(/[^0-9.]/g, '')) || 0;
+        return acc + val;
+    }, 0);
+
+    if (!isAuthenticated) {
+        return (
+            <div className="container" style={{paddingTop: '120px', minHeight: '80vh', display: 'flex', justifyContent: 'center'}}>
+                <div className="card p-40" style={{maxWidth: '400px', width: '100%', textAlign: 'center'}}>
+                    <div style={{color: '#2d3436', marginBottom: '20px'}}><LockIcon /></div>
+                    <h2 style={{marginBottom: '10px'}}>Admin Dashboard</h2>
+                    <form onSubmit={handleLogin}>
+                        <input 
+                            type="password" 
+                            className="lock-input" 
+                            placeholder="Contraseña Maestra"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            autoFocus
+                        />
+                        <button className="btn btn-dark btn-block mt-small">Ingresar</button>
+                    </form>
+                    <button onClick={onLogout} className="btn-link mt-medium">Volver</button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="admin-container">
+            <div className="admin-sidebar">
+                <div className="admin-brand">Tribu Admin</div>
+                <div className="admin-menu">
+                    <button className="menu-item active">Dashboard</button>
+                    <button onClick={onLogout} className="menu-item">Salir</button>
+                </div>
+            </div>
+            <div className="admin-content">
+                <div className="admin-header">
+                    <h2>Panel de Control</h2>
+                    <div className="admin-actions">
+                         <button onClick={generateSeedData} className="btn btn-primary btn-with-icon" disabled={isGenerating}>
+                            {isGenerating ? <LoaderIcon /> : <PlusIcon />} Generar 3 Datos de Prueba
+                        </button>
+                        <button onClick={downloadCSV} className="btn btn-outline btn-with-icon">
+                            <DownloadIcon /> Exportar CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div className="stats-grid">
+                    <div className="kpi-card">
+                        <h3>Total Inscritos</h3>
+                        <div className="kpi-value">{entries.length}</div>
+                    </div>
+                    <div className="kpi-card">
+                        <h3>Valor Acumulado</h3>
+                        <div className="kpi-value text-success">S/ {totalValue.toFixed(2)}</div>
+                    </div>
+                </div>
+
+                <div className="table-container">
+                    <table className="data-table">
+                        <thead>
+                            <tr>
+                                <th>Negocio</th>
+                                <th>Dueño</th>
+                                <th>Contacto</th>
+                                <th>Premio</th>
+                                <th>Valor</th>
+                                <th>Rubro</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {entries.map(entry => (
+                                <tr key={entry.id}>
+                                    <td>
+                                        <div className="cell-flex">
+                                            <img src={entry.logoImage} className="table-img" alt=""/>
+                                            <strong>{entry.name}</strong>
+                                        </div>
+                                    </td>
+                                    <td>{entry.ownerName}</td>
+                                    <td>
+                                        <a href={`https://wa.me/51${entry.phone}`} target="_blank" className="table-link">
+                                            {entry.phone}
+                                        </a>
+                                    </td>
+                                    <td>{entry.prize}</td>
+                                    <td>{entry.value}</td>
+                                    <td><span className="badge-cat">{entry.category}</span></td>
+                                    <td>
+                                        <button onClick={() => handleDelete(entry.id)} className="btn-icon-delete">
+                                            <TrashIcon />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// PRE-REGISTRATION COMPONENT (FOR GROUP SHARING)
+function PreRegisterForm({ onBack }: { onBack: () => void }) {
+    const [isUnlocked, setIsUnlocked] = useState(false);
+    const [accessCode, setAccessCode] = useState('');
+    
+    const [name, setName] = useState('');
+    const [business, setBusiness] = useState('');
+    const [phone, setPhone] = useState('');
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [errorMsg, setErrorMsg] = useState('');
+
+    const handleUnlock = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (accessCode.trim().toUpperCase() === SECRET_ACCESS_CODE) {
+            setIsUnlocked(true);
+        } else {
+            alert('Código incorrecto. Solicítalo en el grupo de WhatsApp.');
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus('loading');
+        
+        try {
+            // Clean phone
+            const cleanPhone = phone.replace(/\D/g, '');
+            if (cleanPhone.length < 9) {
+                throw new Error("El teléfono debe tener al menos 9 dígitos");
+            }
+
+            const { error } = await supabase
+                .from('members')
+                .insert([{
+                    name: name,
+                    business_name: business,
+                    phone: cleanPhone
+                }]);
+
+            if (error) {
+                if(error.code === '23505') throw new Error("Este número ya está registrado.");
+                throw error;
+            }
+
+            setStatus('success');
+        } catch (err: any) {
+            console.error(err);
+            setStatus('error');
+            setErrorMsg(err.message || "Error al registrar.");
+        }
+    };
+
+    // LOCK SCREEN
+    if (!isUnlocked) {
+        return (
+            <div className="container" style={{paddingTop: '120px', minHeight: '80vh', display: 'flex', justifyContent: 'center'}}>
+                <div className="card p-40" style={{maxWidth: '400px', width: '100%', textAlign: 'center'}}>
+                    <div style={{color: '#e1306c', marginBottom: '20px'}}><LockIcon /></div>
+                    <h2 style={{marginBottom: '10px'}}>Acceso Restringido</h2>
+                    <p className="text-gray mb-medium">Esta zona es exclusiva para miembros del grupo.</p>
+                    <form onSubmit={handleUnlock}>
+                        <input 
+                            type="password" 
+                            className="lock-input" 
+                            placeholder="Ingresa la clave del grupo"
+                            value={accessCode}
+                            onChange={(e) => setAccessCode(e.target.value)}
+                            autoFocus
+                        />
+                        <button className="btn btn-dark btn-block mt-small">Desbloquear</button>
+                    </form>
+                    <button onClick={onBack} className="btn-link mt-medium">Volver al Inicio</button>
+                </div>
+            </div>
+        );
+    }
+
+    if (status === 'success') {
+        return (
+            <div className="container" style={{paddingTop: '120px', minHeight: '80vh'}}>
+                <div className="success-message card p-40">
+                    <CheckCircleIcon />
+                    <h2 className="mt-medium">¡Registro Exitoso!</h2>
+                    <p>Ya estás en la lista de invitados.</p>
+                    <p className="mt-small">Ahora puedes ir al inicio y usar el botón <strong>"Súmate Ahora"</strong> para publicar tu premio.</p>
+                    <button onClick={onBack} className="btn btn-primary mt-medium">Ir al Inicio</button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="container" style={{paddingTop: '120px', minHeight: '80vh', maxWidth: '600px'}}>
+             <div className="card p-40">
+                 <div className="text-center mb-medium">
+                    <div className="badge-secure"><LockIcon /> Zona Segura</div>
+                    <h2>Pre-Registro Tribu</h2>
+                    <p className="text-gray">Formulario interno para habilitar tu acceso al sistema del sorteo.</p>
+                 </div>
+                 
+                 <form onSubmit={handleSubmit} className="clean-form">
+                     <div className="form-group">
+                         <label>Tu Nombre Completo</label>
+                         <input type="text" value={name} onChange={e => setName(e.target.value)} required placeholder="Ej. Juan Pérez" />
+                     </div>
+                     <div className="form-group">
+                         <label>Nombre de tu Negocio</label>
+                         <input type="text" value={business} onChange={e => setBusiness(e.target.value)} required placeholder="Ej. Mi Tienda SAC" />
+                     </div>
+                     <div className="form-group">
+                         <label>Número de Celular</label>
+                         <div className="input-with-icon">
+                             <span className="input-icon"><PhoneIcon /></span>
+                             <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} required placeholder="Ej. 999123456" />
+                         </div>
+                         <p className="hint-text">Este será tu llave de acceso para participar en el sorteo.</p>
+                     </div>
+                     
+                     {status === 'error' && <p className="error-text mb-medium">{errorMsg}</p>}
+                     
+                     <button className="btn btn-primary btn-block btn-large" disabled={status === 'loading'}>
+                         {status === 'loading' ? 'Registrando...' : 'Registrarme en la Lista'}
+                     </button>
+                     
+                     <button type="button" onClick={onBack} className="btn btn-outline btn-block mt-small">
+                         Cancelar / Volver
+                     </button>
+                 </form>
+             </div>
+        </div>
+    );
+}
+
+
 function App() {
+  // Navigation State
+  const [viewMode, setViewMode] = useState<'landing' | 'preregister' | 'admin'>('landing');
+
+  // App Data
   const [entries, setEntries] = useState<Entrepreneur[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalStep, setModalStep] = useState<'validation' | 'form' | 'success'>('validation');
+  // Steps: guide -> validation -> form -> success
+  const [modalStep, setModalStep] = useState<'guide' | 'validation' | 'form' | 'success'>('guide');
   
   const [isDirectoryOpen, setIsDirectoryOpen] = useState(false);
   const [isPromoOpen, setIsPromoOpen] = useState(false);
@@ -121,16 +527,19 @@ function App() {
   const [description, setDescription] = useState('');
   const [formCategory, setFormCategory] = useState(PREDEFINED_CATEGORIES[0]);
   const [customCategory, setCustomCategory] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   
-  // Images (State for Preview and Files for Upload)
+  // Images
   const [selectedPrizeImage, setSelectedPrizeImage] = useState<string | null>(null);
   const [prizeImageFile, setPrizeImageFile] = useState<File | null>(null);
-  
   const [selectedLogoImage, setSelectedLogoImage] = useState<string | null>(null);
   const [logoImageFile, setLogoImageFile] = useState<File | null>(null);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedCategory, setSubmittedCategory] = useState('');
+  
+  // Admin Backdoor
+  const [secretClicks, setSecretClicks] = useState(0);
   
   const prizeInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -138,21 +547,39 @@ function App() {
   useEffect(() => {
     fetchEntries();
     
+    // Check for secret URL parameter
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('zona') === 'tribu') {
+        setViewMode('preregister');
+    } else if (params.get('zona') === 'admin') {
+        setViewMode('admin');
+    }
+    
     const handleScroll = () => {
         setScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
     
-    // Trigger Promo Popup
     const timer = setTimeout(() => {
-        setIsPromoOpen(true);
+        if (viewMode === 'landing') setIsPromoOpen(true);
     }, 1500);
 
     return () => {
         window.removeEventListener('scroll', handleScroll);
         clearTimeout(timer);
     }
-  }, []);
+  }, [viewMode]);
+
+  const handleSecretClick = () => {
+      setSecretClicks(prev => {
+          const newCount = prev + 1;
+          if (newCount >= 5) {
+              setViewMode('preregister');
+              return 0;
+          }
+          return newCount;
+      });
+  };
 
   const fetchEntries = async () => {
       try {
@@ -182,7 +609,6 @@ function App() {
           }
       } catch (err) {
           console.error("Error fetching data:", err);
-          // Fallback or empty state handled by empty array
       } finally {
           setIsLoading(false);
       }
@@ -190,7 +616,7 @@ function App() {
 
   const openModal = () => {
     setIsModalOpen(true);
-    setModalStep('validation');
+    setModalStep('guide'); // Start with the guide
     setValidationPhone('');
     setValidationError('');
     document.body.style.overflow = 'hidden';
@@ -221,7 +647,7 @@ function App() {
       setIsValidating(true);
       setValidationError('');
       
-      const cleanPhone = validationPhone.replace(/\D/g, ''); // Remove non-digits
+      const cleanPhone = validationPhone.replace(/\D/g, ''); 
       
       try {
         const { data, error } = await supabase
@@ -235,7 +661,7 @@ function App() {
             if (data.business_name) setBusinessName(data.business_name);
             setModalStep('form');
         } else {
-            setValidationError('Este número no aparece en la base de datos de La Tribu.');
+            setValidationError('NOT_FOUND');
         }
       } catch (err) {
           console.error(err);
@@ -284,7 +710,11 @@ function App() {
     e.preventDefault();
     if (!businessName || !prize || !value) return;
 
-    // Validate custom category
+    if (!acceptedTerms) {
+        alert('Debes aceptar los términos y condiciones para participar.');
+        return;
+    }
+
     if (formCategory === 'Otro' && !customCategory.trim()) {
         alert('Por favor especifica tu rubro.');
         return;
@@ -296,7 +726,6 @@ function App() {
         let finalPrizeImageUrl = 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=600&auto=format&fit=crop&q=60';
         let finalLogoImageUrl = 'https://via.placeholder.com/150?text=Logo';
         
-        // Upload images if they exist
         if (prizeImageFile) {
             finalPrizeImageUrl = await uploadImageToSupabase(prizeImageFile);
         }
@@ -329,10 +758,8 @@ function App() {
         setSubmittedCategory(finalCategory);
         setModalStep('success');
         
-        // Refresh local list
         fetchEntries();
         
-        // Clear form
         setTimeout(() => {
             setBusinessName('');
             setOwnerName('');
@@ -346,13 +773,14 @@ function App() {
             setPrizeImageFile(null);
             setSelectedLogoImage(null);
             setLogoImageFile(null);
+            setAcceptedTerms(false);
             if (prizeInputRef.current) prizeInputRef.current.value = '';
             if (logoInputRef.current) logoInputRef.current.value = '';
         }, 500);
 
     } catch (err) {
         console.error("Error submitting entry:", err);
-        alert('Hubo un error al guardar tu participación. Inténtalo de nuevo.');
+        alert('Hubo un error al guardar. Verifica tu conexión.');
     } finally {
         setIsSubmitting(false);
     }
@@ -367,20 +795,26 @@ function App() {
     const matchesSearch = e.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           e.instagram.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           e.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
     const matchesCategory = selectedCategoryFilter === 'Todas' || e.category === selectedCategoryFilter;
-
     return matchesSearch && matchesCategory;
   });
 
-  // Calculate unique categories for the filter bar
   const filterCategories = React.useMemo(() => {
       const base = PREDEFINED_CATEGORIES.filter(c => c !== 'Otro');
       const fromEntries = entries.map(e => e.category);
-      // Remove duplicates
       return ["Todas", ...Array.from(new Set([...base, ...fromEntries]))];
   }, [entries]);
 
+  // RENDER SEPARATE VIEWS
+  if (viewMode === 'preregister') {
+      return <PreRegisterForm onBack={() => setViewMode('landing')} />;
+  }
+  
+  if (viewMode === 'admin') {
+      return <AdminDashboard onLogout={() => setViewMode('landing')} />;
+  }
+
+  // RENDER MAIN LANDING PAGE
   return (
     <div className="app-container">
       {/* Navbar */}
@@ -391,6 +825,7 @@ function App() {
                 <span>SorteoTribu</span>
             </div>
             <div className="nav-actions">
+                {/* BUTTON REMOVED FOR SECURITY - Only accessible via secret link */}
                 <button onClick={() => scrollToSection('gallery')} className="nav-link">Premios</button>
                 <button onClick={() => scrollToSection('benefits')} className="nav-link">Beneficios</button>
                 <button onClick={openDirectory} className="nav-link">Directorio</button>
@@ -460,7 +895,6 @@ function App() {
                     <div key={entry.id} className="masonry-item">
                         <div className="artwork-card">
                             <div className="image-wrapper">
-                                {/* For the Prize Gallery, we show the Prize Image */}
                                 <img src={entry.prizeImage} alt={entry.prize} />
                                 <span className="category-badge-overlay">{entry.category}</span>
                             </div>
@@ -539,7 +973,6 @@ function App() {
                             {entries.slice(0, 4).map((entry, index) => (
                                 <img 
                                     key={entry.id} 
-                                    // For Directory visual, we prefer logo, fallback to prize image
                                     src={entry.logoImage || entry.prizeImage} 
                                     alt={entry.name} 
                                     style={{ zIndex: 5 - index, left: `${index * 30}px` }}
@@ -572,7 +1005,7 @@ function App() {
                     </a>
                 </div>
             </div>
-            <div className="footer-copyright">
+            <div className="footer-copyright" onDoubleClick={handleSecretClick} onClick={handleSecretClick} style={{userSelect: 'none', cursor: 'pointer'}}>
                 <p>© {new Date().getFullYear()} Juntos somos más fuertes.</p>
             </div>
         </div>
@@ -712,6 +1145,41 @@ function App() {
                 </button>
             )}
             
+            {/* STEP 0: GUIDE (ONBOARDING) */}
+            {modalStep === 'guide' && (
+                <div className="guide-step">
+                    <div className="modal-header">
+                        <h2>¡Bienvenido a la Tribu!</h2>
+                        <p>Antes de empezar, asegúrate de tener lo siguiente:</p>
+                    </div>
+                    <div className="steps-visual">
+                        <div className="step-item">
+                            <div className="step-num">1</div>
+                            <div className="step-icon-bg"><PhoneIcon /></div>
+                            <p>Celular Registrado</p>
+                        </div>
+                        <div className="step-line"></div>
+                        <div className="step-item">
+                            <div className="step-num">2</div>
+                            <div className="step-icon-bg"><ImageIcon /></div>
+                            <p>Logo del Negocio</p>
+                        </div>
+                        <div className="step-line"></div>
+                        <div className="step-item">
+                            <div className="step-num">3</div>
+                            <div className="step-icon-bg"><GiftIcon /></div>
+                            <p>Foto del Premio</p>
+                        </div>
+                    </div>
+                    <div className="guide-footer">
+                        <button className="btn btn-primary btn-block btn-large" onClick={() => setModalStep('validation')}>
+                            ¡Tengo todo listo!
+                        </button>
+                        <p className="hint-text mt-small">Si no estás registrado, solicita el link de acceso en el grupo de WhatsApp de la Tribu.</p>
+                    </div>
+                </div>
+            )}
+
             {/* STEP 1: SUCCESS */}
             {modalStep === 'success' && (
               <div className="success-message">
@@ -757,9 +1225,22 @@ function App() {
                             <p className="hint-text">
                                 (Usa el número con el que te registraste en InfoMercado)
                             </p>
-                            {validationError && (
+                            
+                            {validationError === 'NOT_FOUND' ? (
+                                <div className="error-box">
+                                    <p>Tu número no está en la base de datos.</p>
+                                    <button 
+                                        type="button"
+                                        className="btn-whatsapp-redirect"
+                                        onClick={() => window.open(`https://wa.me/51946770895?text=Hola,%20soy%20emprendedor%20y%20quiero%20unirme%20al%20grupo%20Tribu%20para%20participar%20en%20el%20sorteo.`, '_blank')}
+                                    >
+                                        <WhatsAppIcon /> Escribir al Admin (+51 946 770 895)
+                                    </button>
+                                </div>
+                            ) : validationError && (
                                 <p className="error-text">{validationError}</p>
                             )}
+
                         </div>
                         <button type="submit" className="btn btn-primary btn-block btn-large" disabled={isValidating}>
                             {isValidating ? (
@@ -768,7 +1249,7 @@ function App() {
                         </button>
                     </form>
                     <div className="validation-footer">
-                        <p>¿No eres de La Tribu? <a href="https://infomercado.pe/tribu/" target="_blank">Únete aquí</a></p>
+                        <p>¿No tienes acceso? Habla con el administrador.</p>
                     </div>
                 </div>
             )}
@@ -791,15 +1272,16 @@ function App() {
 
                   <div className="form-row">
                     <div className="form-group" style={{flex: 1}}>
-                         <label>Logo del Negocio</label>
+                         <label>Logo del Negocio <InfoIcon /></label>
                          <label className="mini-upload">
                             {selectedLogoImage ? (
                                 <img src={selectedLogoImage} alt="Logo" className="mini-preview" />
                             ) : (
-                                <div className="mini-placeholder"><ImageIcon /> Logo</div>
+                                <div className="mini-placeholder"><ImageIcon /> Subir Logo</div>
                             )}
                             <input type="file" ref={logoInputRef} onChange={handleLogoImageChange} className="hidden" accept="image/*"/>
                          </label>
+                         <span className="input-helper">Formato cuadrado (1:1)</span>
                     </div>
                     <div style={{flex: 2}}>
                         <div className="form-group">
@@ -904,7 +1386,7 @@ function App() {
                         <input
                         type="text"
                         id="prize"
-                        placeholder="Ej. Sesión de fotos"
+                        placeholder="Ej. Sesión de fotos, Vale de consumo, etc."
                         value={prize}
                         onChange={(e) => setPrize(e.target.value)}
                         required
@@ -916,7 +1398,7 @@ function App() {
                         <input
                         type="text"
                         id="value"
-                        placeholder="Ej. $50.000"
+                        placeholder="Ej. S/ 50.00"
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         required
@@ -926,7 +1408,7 @@ function App() {
                   </div>
 
                   <div className="form-group">
-                    <label>Foto del Premio / Flyer</label>
+                    <label>Foto del Premio / Flyer Publicitario</label>
                     <label className={`upload-area ${isSubmitting ? 'disabled' : ''}`}>
                         {selectedPrizeImage ? (
                             <div className="preview-container">
@@ -948,7 +1430,8 @@ function App() {
                         ) : (
                             <div className="upload-placeholder">
                                 <ImageIcon />
-                                <span>Subir Foto del Producto</span>
+                                <span>Subir Flyer o Foto del Producto</span>
+                                <span className="upload-hint">Sube una imagen atractiva que describa visualmente tu premio.</span>
                             </div>
                         )}
                         <input 
@@ -959,6 +1442,20 @@ function App() {
                             className="hidden"
                             disabled={isSubmitting}
                         />
+                    </label>
+                  </div>
+                  
+                  <div className="terms-checkbox">
+                    <label>
+                        <input 
+                            type="checkbox" 
+                            checked={acceptedTerms}
+                            onChange={(e) => setAcceptedTerms(e.target.checked)}
+                            disabled={isSubmitting}
+                        />
+                        <span>
+                            Declaro que soy miembro de la Tribu y me comprometo a entregar el premio descrito en caso de salir sorteado, cumpliendo con la veracidad de la información.
+                        </span>
                     </label>
                   </div>
 
