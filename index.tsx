@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createClient } from '@supabase/supabase-js';
@@ -93,6 +94,14 @@ const PlusIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
 );
 
+const EyeIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+);
+
+const EditIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+);
+
 interface Entrepreneur {
   id: string;
   name: string; // Business Name
@@ -129,6 +138,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
+    const [viewEntry, setViewEntry] = useState<Entrepreneur | null>(null);
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -177,6 +187,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         const { error } = await supabase.from('entrepreneurs').delete().eq('id', id);
         if (!error) {
             setEntries(entries.filter(e => e.id !== id));
+            setViewEntry(null);
         } else {
             alert('Error al eliminar');
         }
@@ -346,6 +357,9 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                     <td>{entry.value}</td>
                                     <td><span className="badge-cat">{entry.category}</span></td>
                                     <td>
+                                        <button onClick={() => setViewEntry(entry)} className="btn-icon-delete" style={{marginRight: '8px', color: '#0984e3'}}>
+                                            <EyeIcon />
+                                        </button>
                                         <button onClick={() => handleDelete(entry.id)} className="btn-icon-delete">
                                             <TrashIcon />
                                         </button>
@@ -356,6 +370,57 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     </table>
                 </div>
             </div>
+
+            {/* DETAIL MODAL */}
+            {viewEntry && (
+                <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setViewEntry(null)}>
+                    <div className="modal-content" style={{maxWidth: '800px'}}>
+                        <button className="close-btn" onClick={() => setViewEntry(null)}><XIcon /></button>
+                        <div className="modal-header">
+                            <h2>Detalle de Inscripción</h2>
+                            <p>{viewEntry.date.toLocaleDateString()}</p>
+                        </div>
+                        <div className="detail-grid" style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px'}}>
+                            <div className="detail-left">
+                                <h3 style={{marginBottom: '16px', color: '#e1306c', fontSize: '1.2rem'}}>Datos del Negocio</h3>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px'}}>
+                                    <img src={viewEntry.logoImage} alt="logo" style={{width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #ddd'}}/>
+                                    <div>
+                                        <h4 style={{fontSize: '1.2rem', marginBottom: '4px'}}>{viewEntry.name}</h4>
+                                        <p style={{color: '#636e72', fontSize: '0.9rem'}}>{viewEntry.category}</p>
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>Dueño:</label> <span>{viewEntry.ownerName}</span>
+                                </div>
+                                <div className="form-group">
+                                    <label>Instagram:</label> 
+                                    <a href={`https://instagram.com/${viewEntry.instagram.replace('@','')}`} target="_blank" style={{color: '#e1306c', fontWeight: 'bold'}}>{viewEntry.instagram}</a>
+                                </div>
+                                <div className="form-group">
+                                    <label>Teléfono:</label>
+                                    <a href={`https://wa.me/51${viewEntry.phone}`} target="_blank" style={{color: '#00b894', fontWeight: 'bold'}}>{viewEntry.phone}</a>
+                                </div>
+                                <div className="form-group">
+                                    <label>Descripción:</label>
+                                    <p style={{background: '#f5f6fa', padding: '10px', borderRadius: '8px', fontSize: '0.9rem'}}>{viewEntry.description}</p>
+                                </div>
+                            </div>
+                            <div className="detail-right">
+                                <h3 style={{marginBottom: '16px', color: '#e1306c', fontSize: '1.2rem'}}>Datos del Premio</h3>
+                                <div style={{background: '#f5f6fa', padding: '16px', borderRadius: '12px', textAlign: 'center'}}>
+                                    <img src={viewEntry.prizeImage} alt="Premio" style={{width: '100%', maxHeight: '300px', objectFit: 'contain', borderRadius: '8px', marginBottom: '16px'}}/>
+                                    <h4 style={{fontSize: '1.1rem', marginBottom: '8px'}}>{viewEntry.prize}</h4>
+                                    <span style={{background: '#2d3436', color: 'white', padding: '6px 12px', borderRadius: '4px', fontWeight: 'bold'}}>{viewEntry.value}</span>
+                                </div>
+                                <button onClick={() => handleDelete(viewEntry.id)} className="btn btn-outline btn-block mt-medium" style={{color: '#d63031', borderColor: '#d63031'}}>
+                                    <TrashIcon /> Eliminar Publicación
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -443,9 +508,14 @@ function PreRegisterForm({ onBack }: { onBack: () => void }) {
                 <div className="success-message card p-40">
                     <CheckCircleIcon />
                     <h2 className="mt-medium">¡Registro Exitoso!</h2>
-                    <p>Ya estás en la lista de invitados.</p>
-                    <p className="mt-small">Ahora puedes ir al inicio y usar el botón <strong>"Súmate Ahora"</strong> para publicar tu premio.</p>
-                    <button onClick={onBack} className="btn btn-primary mt-medium">Ir al Inicio</button>
+                    <p>Tu número ha sido habilitado en la lista.</p>
+                    <div className="note-box" style={{background: '#e3f2fd', color: '#0984e3', marginTop: '20px'}}>
+                        <p style={{fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '10px'}}>PASO 2: OBLIGATORIO</p>
+                        <p>Ahora debes regresar a la página principal y llenar la ficha de inscripción con los datos de tu premio.</p>
+                    </div>
+                    <button onClick={() => window.location.href = window.location.origin} className="btn btn-primary btn-large mt-medium">
+                        Ir a Inscribir mi Negocio
+                    </button>
                 </div>
             </div>
         );
@@ -504,8 +574,8 @@ function App() {
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // Steps: guide -> validation -> form -> success
-  const [modalStep, setModalStep] = useState<'guide' | 'validation' | 'form' | 'success'>('guide');
+  // Steps: guide -> validation -> form -> preview -> success
+  const [modalStep, setModalStep] = useState<'guide' | 'validation' | 'form' | 'preview' | 'success'>('guide');
   
   const [isDirectoryOpen, setIsDirectoryOpen] = useState(false);
   const [isPromoOpen, setIsPromoOpen] = useState(false);
@@ -706,20 +776,31 @@ function App() {
       return data.publicUrl;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!businessName || !prize || !value) return;
+  // Handle "Next" click (to preview)
+  const handlePreview = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!businessName || !prize || !value) return;
 
-    if (!acceptedTerms) {
-        alert('Debes aceptar los términos y condiciones para participar.');
-        return;
-    }
+      if (!acceptedTerms) {
+          alert('Debes aceptar los términos y condiciones para participar.');
+          return;
+      }
 
-    if (formCategory === 'Otro' && !customCategory.trim()) {
-        alert('Por favor especifica tu rubro.');
-        return;
-    }
+      if (formCategory === 'Otro' && !customCategory.trim()) {
+          alert('Por favor especifica tu rubro.');
+          return;
+      }
+      
+      // Basic image check
+      if (!selectedPrizeImage) {
+          alert('Por favor sube una imagen del premio.');
+          return;
+      }
 
+      setModalStep('preview');
+  };
+
+  const handleFinalSubmit = async () => {
     setIsSubmitting(true);
     
     try {
@@ -1262,7 +1343,7 @@ function App() {
                     <p>Validado: <span className="text-success">{validationPhone}</span></p>
                 </div>
                 
-                <form onSubmit={handleSubmit} className="clean-form">
+                <form onSubmit={handlePreview} className="clean-form">
                   
                   {/* SECTION 1: BUSINESS PROFILE */}
                   <div className="form-section-label">
@@ -1272,7 +1353,10 @@ function App() {
 
                   <div className="form-row">
                     <div className="form-group" style={{flex: 1}}>
-                         <label>Logo del Negocio <InfoIcon /></label>
+                         <label>
+                             Logo <InfoIcon /> 
+                             <span className="helper-badge">1:1</span>
+                         </label>
                          <label className="mini-upload">
                             {selectedLogoImage ? (
                                 <img src={selectedLogoImage} alt="Logo" className="mini-preview" />
@@ -1281,7 +1365,7 @@ function App() {
                             )}
                             <input type="file" ref={logoInputRef} onChange={handleLogoImageChange} className="hidden" accept="image/*"/>
                          </label>
-                         <span className="input-helper">Formato cuadrado (1:1)</span>
+                         <span className="input-helper">Rec: 500x500px</span>
                     </div>
                     <div style={{flex: 2}}>
                         <div className="form-group">
@@ -1408,7 +1492,10 @@ function App() {
                   </div>
 
                   <div className="form-group">
-                    <label>Foto del Premio / Flyer Publicitario</label>
+                    <label>
+                        Foto del Premio
+                        <span className="helper-badge">1080x1080px (Post)</span>
+                    </label>
                     <label className={`upload-area ${isSubmitting ? 'disabled' : ''}`}>
                         {selectedPrizeImage ? (
                             <div className="preview-container">
@@ -1431,7 +1518,7 @@ function App() {
                             <div className="upload-placeholder">
                                 <ImageIcon />
                                 <span>Subir Flyer o Foto del Producto</span>
-                                <span className="upload-hint">Sube una imagen atractiva que describa visualmente tu premio.</span>
+                                <span className="upload-hint">Formatos recomendados: Cuadrado (1:1) o Historia (9:16)</span>
                             </div>
                         )}
                         <input 
@@ -1461,15 +1548,63 @@ function App() {
 
                   <div className="form-footer">
                       <button type="submit" className="btn btn-primary btn-block" disabled={isSubmitting}>
-                        {isSubmitting ? (
-                            <span style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
-                                <LoaderIcon /> Guardando y Subiendo...
-                            </span>
-                        ) : 'Confirmar Participación'}
+                        Ver Vista Previa
                       </button>
                   </div>
                 </form>
               </>
+            )}
+
+            {/* STEP 4: PREVIEW */}
+            {modalStep === 'preview' && (
+                <div className="preview-step">
+                     <div className="modal-header">
+                        <h2>Vista Previa</h2>
+                        <p>Así se verá tu participación en la web.</p>
+                    </div>
+
+                    <div className="preview-container-box">
+                        <span className="preview-label">Tu Tarjeta en la Galería</span>
+                        {/* Artwork Card Preview (Reusing component structure) */}
+                        <div className="artwork-card" style={{maxWidth: '300px', margin: '0 auto'}}>
+                            <div className="image-wrapper">
+                                <img src={selectedPrizeImage || 'https://via.placeholder.com/600'} alt="Preview" />
+                                <span className="category-badge-overlay">{formCategory === 'Otro' ? customCategory : formCategory}</span>
+                            </div>
+                            <div className="artwork-info">
+                                <div className="artwork-header">
+                                  <h4>{businessName}</h4>
+                                  <span className="price-badge">{value}</span>
+                                </div>
+                                <p className="artwork-prize">{prize}</p>
+                                <div className="artwork-footer">
+                                    <span className="artwork-insta">{instagram.startsWith('@') ? instagram : `@${instagram}`}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="form-footer" style={{display: 'flex', gap: '10px'}}>
+                         <button 
+                            className="btn btn-outline btn-block" 
+                            onClick={() => setModalStep('form')}
+                            disabled={isSubmitting}
+                         >
+                            <EditIcon /> Editar
+                        </button>
+                         <button 
+                            className="btn btn-primary btn-block" 
+                            onClick={handleFinalSubmit}
+                            disabled={isSubmitting}
+                         >
+                            {isSubmitting ? (
+                                <span style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
+                                    <LoaderIcon /> Publicando...
+                                </span>
+                            ) : 'Confirmar y Publicar'}
+                        </button>
+                    </div>
+                </div>
             )}
           </div>
         </div>

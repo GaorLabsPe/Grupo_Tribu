@@ -960,6 +960,34 @@ img { max-width: 100%; display: block; }
 }
 .form-section-label h3 { font-size: 1.1rem; color: var(--color-dark); margin: 0; }
 
+/* PREVIEW STEP */
+.preview-container-box {
+    background: #f1f2f6;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+}
+.preview-label {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-gray);
+    margin-bottom: 12px;
+    display: block;
+    text-align: center;
+}
+.helper-badge {
+    display: inline-block;
+    background: #fff8e1;
+    color: #e1b12c;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
 /* PROMO POPUP */
 .promo-overlay {
     position: fixed;
