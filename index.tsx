@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
+import { createClient } from '@supabase/supabase-js';
+
+// --- SUPABASE CONFIGURATION ---
+const SUPABASE_URL = 'https://epyqaqxlgqcxbenaydct.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVweXFhcXhsZ3FjeGJlbmF5ZGN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NzAyOTIsImV4cCI6MjA4MDM0NjI5Mn0.4FKPSM-UfQlfrKQoXRnBps9RLCX2MT8HkqcQlEHgc5Q';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Icons
 const GiftIcon = () => (
@@ -54,12 +61,12 @@ const StarIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="#ffd700" stroke="#b39200" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
 );
 
-const LockIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-);
-
 const UserIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+);
+
+const LoaderIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="spinner"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
 );
 
 interface Entrepreneur {
@@ -77,13 +84,6 @@ interface Entrepreneur {
   category: string;
 }
 
-// SIMULATED DATABASE OF "TRIBU" MEMBERS
-const TRIBU_DATABASE = [
-    { phone: '999999999', name: 'Jean (Admin)', business: 'InfoMercado' },
-    { phone: '123456789', name: 'Miembro Demo', business: 'Negocio Demo' },
-    { phone: '987654321', name: 'Carla Perez', business: 'Arte Sano' },
-];
-
 const PREDEFINED_CATEGORIES = [
   "Moda",
   "Gastronomía",
@@ -95,53 +95,9 @@ const PREDEFINED_CATEGORIES = [
   "Otro"
 ];
 
-const INITIAL_ENTRIES: Entrepreneur[] = [
-  { 
-    id: '1', 
-    name: 'Estilo Urbano',
-    ownerName: 'Carlos Ruiz',
-    prize: 'Kit de ropa deportiva', 
-    value: '$50.000', 
-    prizeImage: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', 
-    logoImage: 'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    date: new Date(),
-    instagram: '@estilo_urbano',
-    phone: '999123456',
-    description: 'Moda deportiva diseñada para moverte con libertad. Telas transpirables y diseños únicos.',
-    category: 'Moda'
-  },
-  { 
-    id: '2', 
-    name: 'Sabores Caseros', 
-    ownerName: 'Maria Lopez',
-    prize: 'Desayuno sorpresa', 
-    value: '$35.000', 
-    prizeImage: 'https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', 
-    logoImage: 'https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?w=200&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    date: new Date(),
-    instagram: '@sabores_caseros',
-    phone: '999987654',
-    description: 'Repostería artesanal con el sabor de la abuela. Hacemos tus mañanas más dulces.',
-    category: 'Gastronomía'
-  },
-  { 
-    id: '3', 
-    name: 'Tech Solutions',
-    ownerName: 'David Wong',
-    prize: 'Audífonos Bluetooth', 
-    value: '$80.000', 
-    prizeImage: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', 
-    logoImage: 'https://images.unsplash.com/photo-1662947036643-85e8d77c191a?w=200&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    date: new Date(),
-    instagram: '@tech_solutions',
-    phone: '999555111',
-    description: 'Accesorios tecnológicos de alta gama. Conectamos tu mundo con la mejor calidad.',
-    category: 'Tecnología'
-  },
-];
-
 function App() {
-  const [entries, setEntries] = useState<Entrepreneur[]>(INITIAL_ENTRIES);
+  const [entries, setEntries] = useState<Entrepreneur[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStep, setModalStep] = useState<'validation' | 'form' | 'success'>('validation');
   
@@ -154,6 +110,7 @@ function App() {
   // Validation State
   const [validationPhone, setValidationPhone] = useState('');
   const [validationError, setValidationError] = useState('');
+  const [isValidating, setIsValidating] = useState(false);
 
   // Form State
   const [businessName, setBusinessName] = useState('');
@@ -165,16 +122,22 @@ function App() {
   const [formCategory, setFormCategory] = useState(PREDEFINED_CATEGORIES[0]);
   const [customCategory, setCustomCategory] = useState('');
   
-  // Images
+  // Images (State for Preview and Files for Upload)
   const [selectedPrizeImage, setSelectedPrizeImage] = useState<string | null>(null);
-  const [selectedLogoImage, setSelectedLogoImage] = useState<string | null>(null);
+  const [prizeImageFile, setPrizeImageFile] = useState<File | null>(null);
   
+  const [selectedLogoImage, setSelectedLogoImage] = useState<string | null>(null);
+  const [logoImageFile, setLogoImageFile] = useState<File | null>(null);
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedCategory, setSubmittedCategory] = useState('');
   
   const prizeInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    fetchEntries();
+    
     const handleScroll = () => {
         setScrolled(window.scrollY > 20);
     };
@@ -191,9 +154,43 @@ function App() {
     }
   }, []);
 
+  const fetchEntries = async () => {
+      try {
+          const { data, error } = await supabase
+              .from('entrepreneurs')
+              .select('*')
+              .order('created_at', { ascending: false });
+          
+          if (error) throw error;
+          
+          if (data) {
+              const mappedEntries: Entrepreneur[] = data.map(item => ({
+                  id: item.id,
+                  name: item.business_name,
+                  ownerName: item.owner_name,
+                  phone: item.phone,
+                  prize: item.prize,
+                  value: item.prize_value,
+                  prizeImage: item.prize_image_url || 'https://via.placeholder.com/600x600?text=Sin+Imagen',
+                  logoImage: item.logo_image_url || 'https://via.placeholder.com/150x150?text=Logo',
+                  date: new Date(item.created_at),
+                  instagram: item.instagram,
+                  description: item.description,
+                  category: item.category
+              }));
+              setEntries(mappedEntries);
+          }
+      } catch (err) {
+          console.error("Error fetching data:", err);
+          // Fallback or empty state handled by empty array
+      } finally {
+          setIsLoading(false);
+      }
+  };
+
   const openModal = () => {
     setIsModalOpen(true);
-    setModalStep('validation'); // Reset to start
+    setModalStep('validation');
     setValidationPhone('');
     setValidationError('');
     document.body.style.overflow = 'hidden';
@@ -219,26 +216,39 @@ function App() {
   };
 
   // VALIDATION LOGIC
-  const handleValidationSubmit = (e: React.FormEvent) => {
+  const handleValidationSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+      setIsValidating(true);
+      setValidationError('');
+      
       const cleanPhone = validationPhone.replace(/\D/g, ''); // Remove non-digits
-      const member = TRIBU_DATABASE.find(m => m.phone === cleanPhone);
+      
+      try {
+        const { data, error } = await supabase
+            .from('members')
+            .select('*')
+            .eq('phone', cleanPhone)
+            .single();
 
-      if (member) {
-          // Success: Pre-fill some data if available and move to form
-          setOwnerName(member.name);
-          // If the member had a business name in DB we could pre-fill it too
-          // setBusinessName(member.business); 
-          setValidationError('');
-          setModalStep('form');
-      } else {
-          setValidationError('Este número no aparece en la base de datos de La Tribu.');
+        if (data) {
+            setOwnerName(data.name || '');
+            if (data.business_name) setBusinessName(data.business_name);
+            setModalStep('form');
+        } else {
+            setValidationError('Este número no aparece en la base de datos de La Tribu.');
+        }
+      } catch (err) {
+          console.error(err);
+          setValidationError('Error de conexión. Inténtalo de nuevo.');
+      } finally {
+          setIsValidating(false);
       }
   };
 
   const handlePrizeImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      setPrizeImageFile(file);
       const imageUrl = URL.createObjectURL(file);
       setSelectedPrizeImage(imageUrl);
     }
@@ -247,61 +257,105 @@ function App() {
   const handleLogoImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      setLogoImageFile(file);
       const imageUrl = URL.createObjectURL(file);
       setSelectedLogoImage(imageUrl);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const uploadImageToSupabase = async (file: File) => {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('images')
+        .upload(filePath, file);
+
+      if (uploadError) {
+          throw uploadError;
+      }
+
+      const { data } = supabase.storage.from('images').getPublicUrl(filePath);
+      return data.publicUrl;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!businessName || !prize || !value) return;
 
-    // Validate custom category if selected
+    // Validate custom category
     if (formCategory === 'Otro' && !customCategory.trim()) {
         alert('Por favor especifica tu rubro.');
         return;
     }
 
-    const finalPrizeImage = selectedPrizeImage || 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3';
-    const finalLogoImage = selectedLogoImage || 'https://via.placeholder.com/150?text=Logo'; // Fallback
+    setIsSubmitting(true);
     
-    const formattedInsta = instagram.startsWith('@') ? instagram : `@${instagram}`;
-    const finalCategory = formCategory === 'Otro' ? customCategory.trim() : formCategory;
+    try {
+        let finalPrizeImageUrl = 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=600&auto=format&fit=crop&q=60';
+        let finalLogoImageUrl = 'https://via.placeholder.com/150?text=Logo';
+        
+        // Upload images if they exist
+        if (prizeImageFile) {
+            finalPrizeImageUrl = await uploadImageToSupabase(prizeImageFile);
+        }
+        if (logoImageFile) {
+            finalLogoImageUrl = await uploadImageToSupabase(logoImageFile);
+        }
 
-    const newEntry: Entrepreneur = {
-      id: Math.random().toString(36).substr(2, 9),
-      name: businessName,
-      ownerName: ownerName,
-      phone: validationPhone,
-      prize,
-      value: value.includes('$') ? value : `$${value}`,
-      prizeImage: finalPrizeImage,
-      logoImage: finalLogoImage,
-      date: new Date(),
-      instagram: formattedInsta,
-      description: description || 'Emprendedor de la tribu.',
-      category: finalCategory
-    };
+        const formattedInsta = instagram.startsWith('@') ? instagram : `@${instagram}`;
+        const finalCategory = formCategory === 'Otro' ? customCategory.trim() : formCategory;
 
-    setEntries([newEntry, ...entries]);
-    setSubmittedCategory(finalCategory);
-    setModalStep('success');
-    
-    // Clear form for next time (kept in timeout to avoid visual flicker before close)
-    setTimeout(() => {
-        setBusinessName('');
-        setOwnerName('');
-        setPrize('');
-        setValue('');
-        setInstagram('');
-        setDescription('');
-        setFormCategory(PREDEFINED_CATEGORIES[0]);
-        setCustomCategory('');
-        setSelectedPrizeImage(null);
-        setSelectedLogoImage(null);
-        if (prizeInputRef.current) prizeInputRef.current.value = '';
-        if (logoInputRef.current) logoInputRef.current.value = '';
-    }, 500);
+        const { error: insertError } = await supabase
+            .from('entrepreneurs')
+            .insert([
+                {
+                    business_name: businessName,
+                    owner_name: ownerName,
+                    phone: validationPhone,
+                    prize: prize,
+                    prize_value: value.includes('$') ? value : `$${value}`,
+                    prize_image_url: finalPrizeImageUrl,
+                    logo_image_url: finalLogoImageUrl,
+                    instagram: formattedInsta,
+                    description: description || 'Emprendedor de la tribu.',
+                    category: finalCategory
+                }
+            ]);
+
+        if (insertError) throw insertError;
+
+        setSubmittedCategory(finalCategory);
+        setModalStep('success');
+        
+        // Refresh local list
+        fetchEntries();
+        
+        // Clear form
+        setTimeout(() => {
+            setBusinessName('');
+            setOwnerName('');
+            setPrize('');
+            setValue('');
+            setInstagram('');
+            setDescription('');
+            setFormCategory(PREDEFINED_CATEGORIES[0]);
+            setCustomCategory('');
+            setSelectedPrizeImage(null);
+            setPrizeImageFile(null);
+            setSelectedLogoImage(null);
+            setLogoImageFile(null);
+            if (prizeInputRef.current) prizeInputRef.current.value = '';
+            if (logoInputRef.current) logoInputRef.current.value = '';
+        }, 500);
+
+    } catch (err) {
+        console.error("Error submitting entry:", err);
+        alert('Hubo un error al guardar tu participación. Inténtalo de nuevo.');
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   const scrollToSection = (id: string) => {
@@ -323,6 +377,7 @@ function App() {
   const filterCategories = React.useMemo(() => {
       const base = PREDEFINED_CATEGORIES.filter(c => c !== 'Otro');
       const fromEntries = entries.map(e => e.category);
+      // Remove duplicates
       return ["Todas", ...Array.from(new Set([...base, ...fromEntries]))];
   }, [entries]);
 
@@ -394,7 +449,12 @@ function App() {
                 <p className="section-desc">Descubre lo que están aportando otros emprendedores.</p>
             </div>
             
-            {entries.length > 0 ? (
+            {isLoading ? (
+                <div className="empty-box">
+                    <div className="spinner-large" style={{margin: '0 auto 20px'}}><LoaderIcon /></div>
+                    <p>Cargando premios...</p>
+                </div>
+            ) : entries.length > 0 ? (
                 <div className="masonry-grid">
                 {entries.map((entry) => (
                     <div key={entry.id} className="masonry-item">
@@ -422,6 +482,7 @@ function App() {
                 <div className="empty-box">
                     <div className="icon-placeholder"><ImageIcon /></div>
                     <h3>Aún no hay flyers</h3>
+                    <p>Sé el primero en sumarte a la dinámica</p>
                     <button onClick={openModal} className="btn btn-primary mt-small">
                         Subir mi Flyer
                     </button>
@@ -473,20 +534,26 @@ function App() {
                     </button>
                  </div>
                  <div className="teaser-visual">
-                    <div className="avatar-stack">
-                        {entries.slice(0, 4).map((entry, index) => (
-                            <img 
-                                key={entry.id} 
-                                // For Directory visual, we prefer logo, fallback to prize image
-                                src={entry.logoImage || entry.prizeImage} 
-                                alt={entry.name} 
-                                style={{ zIndex: 5 - index, left: `${index * 30}px` }}
-                            />
-                        ))}
-                         <div className="avatar-count" style={{ left: `${Math.min(entries.length, 4) * 30}px` }}>
-                            +{entries.length}
+                    {entries.length > 0 ? (
+                        <div className="avatar-stack">
+                            {entries.slice(0, 4).map((entry, index) => (
+                                <img 
+                                    key={entry.id} 
+                                    // For Directory visual, we prefer logo, fallback to prize image
+                                    src={entry.logoImage || entry.prizeImage} 
+                                    alt={entry.name} 
+                                    style={{ zIndex: 5 - index, left: `${index * 30}px` }}
+                                />
+                            ))}
+                            <div className="avatar-count" style={{ left: `${Math.min(entries.length, 4) * 30}px` }}>
+                                +{entries.length}
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                         <div className="empty-stack-placeholder">
+                             <span>Únete para aparecer aquí</span>
+                         </div>
+                    )}
                  </div>
              </div>
         </div>
@@ -521,7 +588,7 @@ function App() {
                       <h2>¡La Tribu se une!</h2>
                       <div className="promo-stats">
                           <div className="promo-stat-item">
-                              <span className="val">{entries.length}</span>
+                              <span className="val">{entries.length > 0 ? entries.length : '10+'}</span>
                               <span className="lbl">Marcas</span>
                           </div>
                           <div className="promo-separator"></div>
@@ -586,45 +653,49 @@ function App() {
               </div>
 
               <div className="directory-body container">
-                 <div className="bio-grid">
-                    {filteredEntries.map(entry => (
-                        <div key={entry.id} className="bio-card">
-                            <div className="bio-header">
-                                <img src={entry.logoImage || entry.prizeImage} alt={entry.name} className="bio-avatar" />
-                                <div>
-                                    <h3>{entry.name}</h3>
-                                    <div className="flex-col">
-                                        <span className="owner-name-small">{entry.ownerName}</span>
-                                        <span className="bio-handle">{entry.instagram}</span>
-                                        <span className="category-tag"><TagIcon /> {entry.category}</span>
+                 {isLoading ? (
+                     <div className="text-center p-10">Cargando directorio...</div>
+                 ) : (
+                     <div className="bio-grid">
+                        {filteredEntries.map(entry => (
+                            <div key={entry.id} className="bio-card">
+                                <div className="bio-header">
+                                    <img src={entry.logoImage || entry.prizeImage} alt={entry.name} className="bio-avatar" />
+                                    <div>
+                                        <h3>{entry.name}</h3>
+                                        <div className="flex-col">
+                                            <span className="owner-name-small">{entry.ownerName}</span>
+                                            <span className="bio-handle">{entry.instagram}</span>
+                                            <span className="category-tag"><TagIcon /> {entry.category}</span>
+                                        </div>
                                     </div>
                                 </div>
+                                <div className="bio-content">
+                                    <p>{entry.description}</p>
+                                </div>
+                                <div className="bio-footer">
+                                    <button className="action-btn insta" onClick={() => window.open(`https://instagram.com/${entry.instagram.replace('@','')}`, '_blank')}>
+                                        <InstagramIcon /> Seguir
+                                    </button>
+                                    <button className="action-btn whatsapp" onClick={() => window.open(`https://wa.me/51${entry.phone}`, '_blank')}>
+                                        <PhoneIcon /> Contactar
+                                    </button>
+                                </div>
                             </div>
-                            <div className="bio-content">
-                                <p>{entry.description}</p>
-                            </div>
-                            <div className="bio-footer">
-                                <button className="action-btn insta" onClick={() => window.open(`https://instagram.com/${entry.instagram.replace('@','')}`, '_blank')}>
-                                    <InstagramIcon /> Seguir
+                        ))}
+                        {filteredEntries.length === 0 && (
+                            <div className="no-results">
+                                <p>No se encontraron resultados para "{searchTerm}" en la categoría "{selectedCategoryFilter}"</p>
+                                <button className="btn btn-outline" onClick={() => {
+                                    setSearchTerm('');
+                                    setSelectedCategoryFilter('Todas');
+                                }}>
+                                    Ver todos
                                 </button>
-                                <button className="action-btn whatsapp" onClick={() => window.open(`https://wa.me/51${entry.phone}`, '_blank')}>
-                                    <PhoneIcon /> Contactar
-                                </button>
                             </div>
-                        </div>
-                    ))}
-                    {filteredEntries.length === 0 && (
-                        <div className="no-results">
-                            <p>No se encontraron resultados para "{searchTerm}" en la categoría "{selectedCategoryFilter}"</p>
-                            <button className="btn btn-outline" onClick={() => {
-                                setSearchTerm('');
-                                setSelectedCategoryFilter('Todas');
-                            }}>
-                                Ver todos
-                            </button>
-                        </div>
-                    )}
-                 </div>
+                        )}
+                     </div>
+                 )}
               </div>
           </div>
       )}
@@ -632,12 +703,14 @@ function App() {
       {/* MODAL WIZARD */}
       {isModalOpen && (
         <div className="modal-overlay" onClick={(e) => {
-            if(e.target === e.currentTarget) closeModal();
+            if(e.target === e.currentTarget && !isSubmitting) closeModal();
         }}>
           <div className="modal-content">
-            <button className="close-btn" onClick={closeModal}>
-              <XIcon />
-            </button>
+            {!isSubmitting && (
+                <button className="close-btn" onClick={closeModal}>
+                <XIcon />
+                </button>
+            )}
             
             {/* STEP 1: SUCCESS */}
             {modalStep === 'success' && (
@@ -678,17 +751,20 @@ function App() {
                                     className="input-large"
                                     autoFocus
                                     required
+                                    disabled={isValidating}
                                 />
                             </div>
                             <p className="hint-text">
-                                (Demo: Usa <strong>123456789</strong> o <strong>999999999</strong>)
+                                (Usa el número con el que te registraste en InfoMercado)
                             </p>
                             {validationError && (
                                 <p className="error-text">{validationError}</p>
                             )}
                         </div>
-                        <button type="submit" className="btn btn-primary btn-block btn-large">
-                            Validar Acceso
+                        <button type="submit" className="btn btn-primary btn-block btn-large" disabled={isValidating}>
+                            {isValidating ? (
+                                <span style={{display: 'flex', alignItems: 'center', gap: '10px'}}><LoaderIcon /> Verificando...</span>
+                            ) : 'Validar Acceso'}
                         </button>
                     </form>
                     <div className="validation-footer">
@@ -735,6 +811,7 @@ function App() {
                             value={businessName}
                             onChange={(e) => setBusinessName(e.target.value)}
                             required
+                            disabled={isSubmitting}
                             />
                         </div>
                         <div className="form-group">
@@ -748,6 +825,7 @@ function App() {
                                 value={ownerName}
                                 onChange={(e) => setOwnerName(e.target.value)}
                                 required
+                                disabled={isSubmitting}
                                 />
                             </div>
                         </div>
@@ -765,6 +843,7 @@ function App() {
                                 if (e.target.value !== 'Otro') setCustomCategory('');
                             }}
                             className="form-select"
+                            disabled={isSubmitting}
                         >
                             {PREDEFINED_CATEGORIES.map(c => (
                                 <option key={c} value={c}>{c}</option>
@@ -778,6 +857,7 @@ function App() {
                                 value={customCategory}
                                 onChange={(e) => setCustomCategory(e.target.value)}
                                 required
+                                disabled={isSubmitting}
                             />
                         )}
                       </div>
@@ -792,6 +872,7 @@ function App() {
                             value={instagram}
                             onChange={(e) => setInstagram(e.target.value)}
                             required
+                            disabled={isSubmitting}
                             />
                         </div>
                       </div>
@@ -807,6 +888,7 @@ function App() {
                         onChange={(e) => setDescription(e.target.value)}
                         className="form-textarea"
                         required
+                        disabled={isSubmitting}
                      />
                   </div>
                   
@@ -826,6 +908,7 @@ function App() {
                         value={prize}
                         onChange={(e) => setPrize(e.target.value)}
                         required
+                        disabled={isSubmitting}
                         />
                     </div>
                     <div className="form-group">
@@ -837,26 +920,30 @@ function App() {
                         value={value}
                         onChange={(e) => setValue(e.target.value)}
                         required
+                        disabled={isSubmitting}
                         />
                     </div>
                   </div>
 
                   <div className="form-group">
                     <label>Foto del Premio / Flyer</label>
-                    <label className="upload-area">
+                    <label className={`upload-area ${isSubmitting ? 'disabled' : ''}`}>
                         {selectedPrizeImage ? (
                             <div className="preview-container">
                                 <img src={selectedPrizeImage} alt="Preview" />
-                                <button 
-                                    className="change-img-btn"
-                                    onClick={(e) => {
-                                        e.preventDefault(); 
-                                        setSelectedPrizeImage(null);
-                                        if(prizeInputRef.current) prizeInputRef.current.value = '';
-                                    }}
-                                >
-                                    Cambiar imagen
-                                </button>
+                                {!isSubmitting && (
+                                    <button 
+                                        className="change-img-btn"
+                                        onClick={(e) => {
+                                            e.preventDefault(); 
+                                            setSelectedPrizeImage(null);
+                                            setPrizeImageFile(null);
+                                            if(prizeInputRef.current) prizeInputRef.current.value = '';
+                                        }}
+                                    >
+                                        Cambiar imagen
+                                    </button>
+                                )}
                             </div>
                         ) : (
                             <div className="upload-placeholder">
@@ -870,13 +957,18 @@ function App() {
                             ref={prizeInputRef}
                             onChange={handlePrizeImageChange}
                             className="hidden"
+                            disabled={isSubmitting}
                         />
                     </label>
                   </div>
 
                   <div className="form-footer">
-                      <button type="submit" className="btn btn-primary btn-block">
-                        Confirmar Participación
+                      <button type="submit" className="btn btn-primary btn-block" disabled={isSubmitting}>
+                        {isSubmitting ? (
+                            <span style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'}}>
+                                <LoaderIcon /> Guardando y Subiendo...
+                            </span>
+                        ) : 'Confirmar Participación'}
                       </button>
                   </div>
                 </form>
