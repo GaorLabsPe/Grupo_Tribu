@@ -1,5 +1,6 @@
 
 
+
 :root {
   --primary-gradient: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
   --color-primary: #e1306c;
@@ -1350,6 +1351,121 @@ img { max-width: 100%; display: block; }
 
 .text-red { color: #d63031; }
 .text-red:hover { background: #ffeaa7; }
+
+
+/* --- DIGITAL CARD STYLES --- */
+.digital-card-container {
+    min-height: 100vh;
+    background: #f1f2f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+.digital-card {
+    background: white;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    text-align: center;
+    position: relative;
+    border: 8px solid white;
+}
+.dc-header {
+    background: #f8f9fa;
+    padding: 40px 20px 30px;
+    position: relative;
+}
+.dc-logo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid white;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    margin: 0 auto 20px;
+    display: block;
+}
+.dc-name {
+    font-size: 1.8rem;
+    color: var(--color-dark);
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+.dc-category {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-gray);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.dc-verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f1c40f;
+    color: #2d3436;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    margin-top: 16px;
+    text-transform: uppercase;
+}
+
+.dc-body { padding: 30px 24px; }
+.dc-description { color: #636e72; font-size: 1rem; margin-bottom: 24px; line-height: 1.6; }
+.dc-owner { font-weight: 700; color: #2d3436; font-size: 0.9rem; margin-bottom: 30px; background: #f1f2f6; display: inline-block; padding: 4px 12px; border-radius: 8px; }
+
+.dc-links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+.dc-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+.dc-btn:hover { transform: translateY(-3px); }
+
+.dc-btn.whatsapp { background: #25D366; color: white; }
+.dc-btn.instagram { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; }
+.dc-btn.facebook { background: #1877f2; color: white; }
+.dc-btn.website { background: #2d3436; color: white; }
+
+.dc-qr-section {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 2px dashed #e2e6ea;
+}
+.dc-qr-section p { font-size: 0.8rem; font-weight: 700; color: #b2bec3; text-transform: uppercase; margin-bottom: 16px; letter-spacing: 1px; }
+.dc-qr-img { width: 150px; height: 150px; margin: 0 auto; display: block; border-radius: 8px; }
+
+.dc-footer {
+    background: #f8f9fa;
+    padding: 20px;
+    font-size: 0.8rem;
+    color: #b2bec3;
+}
+.btn-link-simple {
+    display: inline-block;
+    margin-top: 8px;
+    color: var(--color-primary);
+    font-weight: 700;
+    text-decoration: underline;
+}
 
 @media (max-width: 768px) {
     .hero-grid { grid-template-columns: 1fr; text-align: center; gap: 40px; }

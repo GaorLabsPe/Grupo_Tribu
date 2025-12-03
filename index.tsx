@@ -51,7 +51,7 @@ const TikTokIcon = () => (
 );
 
 const GlobeIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"></path></svg>
 );
 
 const PhoneIcon = () => (
@@ -115,7 +115,7 @@ const PlusIcon = () => (
 );
 
 const EyeIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8-11-8-11-8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
 );
 
 const EditIcon = () => (
@@ -128,6 +128,10 @@ const ShareIcon = () => (
 
 const CopyIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+);
+
+const QrIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
 );
 
 interface Entrepreneur {
@@ -169,6 +173,102 @@ const PREDEFINED_CATEGORIES = [
 
 const SECRET_ACCESS_CODE = "TRIBU2024";
 const ADMIN_PASSWORD = "ADMIN123";
+
+// --- DIGITAL CARD COMPONENT ---
+function DigitalCardView({ entrepreneurId, onBack }: { entrepreneurId: string, onBack: () => void }) {
+    const [data, setData] = useState<Entrepreneur | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchCard = async () => {
+            const { data: entData, error } = await supabase
+                .from('entrepreneurs')
+                .select('*')
+                .eq('id', entrepreneurId)
+                .single();
+
+            if (entData) {
+                setData({
+                    id: entData.id,
+                    name: entData.business_name,
+                    ownerName: entData.owner_name,
+                    phone: entData.phone,
+                    prize: entData.prize,
+                    value: entData.prize_value,
+                    prizeImage: entData.prize_image_url || 'https://via.placeholder.com/600',
+                    logoImage: entData.logo_image_url || 'https://via.placeholder.com/150',
+                    date: new Date(entData.created_at),
+                    instagram: entData.instagram,
+                    facebook: entData.facebook,
+                    tiktok: entData.tiktok,
+                    website: entData.website,
+                    description: entData.description,
+                    category: entData.category,
+                    isFeatured: entData.is_featured
+                });
+            }
+            setLoading(false);
+        };
+        fetchCard();
+    }, [entrepreneurId]);
+
+    if (loading) return <div className="container p-40 text-center"><LoaderIcon /> Cargando tarjeta...</div>;
+    if (!data) return <div className="container p-40 text-center">Empresa no encontrada</div>;
+
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${window.location.origin}/?card=${data.id}&color=e1306c`;
+
+    return (
+        <div className="digital-card-container">
+            <div className="digital-card">
+                <div className="dc-header">
+                    <img src={data.logoImage} alt="Logo" className="dc-logo" />
+                    <h1 className="dc-name">{data.name}</h1>
+                    <p className="dc-category">{data.category}</p>
+                    <div className="dc-verified-badge">
+                        <StarFilledIcon size={14} /> Miembro Verificado 2024
+                    </div>
+                </div>
+
+                <div className="dc-body">
+                    <p className="dc-description">{data.description}</p>
+                    <p className="dc-owner">Gerente: {data.ownerName}</p>
+                    
+                    <div className="dc-links">
+                        <a href={`https://wa.me/51${data.phone}`} target="_blank" className="dc-btn whatsapp">
+                            <WhatsAppIcon /> Contactar por WhatsApp
+                        </a>
+                        {data.instagram && (
+                            <a href={`https://instagram.com/${data.instagram.replace('@','')}`} target="_blank" className="dc-btn instagram">
+                                <InstagramIcon /> Ver Instagram
+                            </a>
+                        )}
+                        {data.facebook && (
+                            <a href={data.facebook} target="_blank" className="dc-btn facebook">
+                                <FacebookIcon /> Ver Facebook
+                            </a>
+                        )}
+                        {data.website && (
+                             <a href={data.website} target="_blank" className="dc-btn website">
+                                <GlobeIcon /> Visitar Sitio Web
+                            </a>
+                        )}
+                    </div>
+                    
+                    <div className="dc-qr-section">
+                        <p>Escanea para guardar contacto</p>
+                        <img src={qrUrl} alt="QR Code" className="dc-qr-img" />
+                    </div>
+                </div>
+
+                <div className="dc-footer">
+                    <p>Miembro de <strong>La Tribu</strong></p>
+                    <button onClick={onBack} className="btn-link-simple">Ir al Sorteo</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 
 // --- ADMIN DASHBOARD COMPONENT ---
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
@@ -541,6 +641,9 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                                     style={{color: entry.isFeatured ? '#f1c40f' : '#b2bec3'}}
                                                 >
                                                     {entry.isFeatured ? <StarFilledIcon /> : <StarOutlineIcon />}
+                                                </button>
+                                                <button onClick={() => window.open(`/?card=${entry.id}`, '_blank')} className="btn-icon-action text-blue" title="Ver Tarjeta Digital">
+                                                    <QrIcon />
                                                 </button>
                                                 <button onClick={() => setEditingEnrolled(entry)} className="btn-icon-action text-blue" title="Editar Ficha">
                                                     <EditIcon />
@@ -979,7 +1082,8 @@ function PreRegisterForm({ onBack }: { onBack: () => void }) {
 
 function App() {
   // Navigation State
-  const [viewMode, setViewMode] = useState<'landing' | 'preregister' | 'admin'>('landing');
+  const [viewMode, setViewMode] = useState<'landing' | 'preregister' | 'admin' | 'card'>('landing');
+  const [cardId, setCardId] = useState<string>('');
 
   // App Data
   const [entries, setEntries] = useState<Entrepreneur[]>([]);
@@ -1035,7 +1139,12 @@ function App() {
     
     // Check for secret URL parameter
     const params = new URLSearchParams(window.location.search);
-    if (params.get('zona') === 'tribu') {
+    const cardParam = params.get('card');
+    
+    if (cardParam) {
+        setCardId(cardParam);
+        setViewMode('card');
+    } else if (params.get('zona') === 'tribu') {
         setViewMode('preregister');
     } else if (params.get('zona') === 'admin') {
         setViewMode('admin');
@@ -1345,6 +1454,10 @@ function App() {
   
   if (viewMode === 'admin') {
       return <AdminDashboard onLogout={() => setViewMode('landing')} />;
+  }
+
+  if (viewMode === 'card') {
+      return <DigitalCardView entrepreneurId={cardId} onBack={() => { setViewMode('landing'); window.history.replaceState(null, '', '/'); }} />;
   }
 
   // RENDER MAIN LANDING PAGE
@@ -1671,9 +1784,19 @@ function App() {
                                          </button>
                                      )}
                                 </div>
-                                <button className="btn-block action-btn whatsapp" onClick={() => window.open(`https://wa.me/51${entry.phone}`, '_blank')} style={{marginTop: '10px'}}>
-                                    <WhatsAppIcon /> WhatsApp / Contactar
-                                </button>
+                                <div className="action-buttons-row" style={{display: 'flex', gap: '8px'}}>
+                                    <button className="btn-block action-btn whatsapp" onClick={() => window.open(`https://wa.me/51${entry.phone}`, '_blank')} style={{flex: 3}}>
+                                        <WhatsAppIcon /> WhatsApp
+                                    </button>
+                                    <button 
+                                        className="btn-icon-action" 
+                                        onClick={() => window.open(`/?card=${entry.id}`, '_blank')}
+                                        style={{flex: 1, border: '1px solid #dfe6e9', height: 'auto'}}
+                                        title="Ver Tarjeta Digital"
+                                    >
+                                        <QrIcon />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                         {filteredEntries.length === 0 && (
