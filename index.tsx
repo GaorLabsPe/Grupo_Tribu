@@ -172,6 +172,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const [isGenerating, setIsGenerating] = useState(false);
     const [viewEntry, setViewEntry] = useState<Entrepreneur | null>(null);
     const [editingMember, setEditingMember] = useState<Member | null>(null);
+    const [editingEnrolled, setEditingEnrolled] = useState<Entrepreneur | null>(null);
     const [activeTab, setActiveTab] = useState<'enrolled' | 'pending'>('enrolled');
 
     useEffect(() => {
@@ -299,6 +300,39 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         } catch (err: any) {
             console.error(err);
             alert('Error al actualizar datos');
+        }
+    };
+
+    const handleUpdateEnrolled = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingEnrolled) return;
+
+        try {
+             const { error } = await supabase
+                .from('entrepreneurs')
+                .update({
+                    business_name: editingEnrolled.name,
+                    owner_name: editingEnrolled.ownerName,
+                    phone: editingEnrolled.phone,
+                    prize: editingEnrolled.prize,
+                    prize_value: editingEnrolled.value,
+                    category: editingEnrolled.category,
+                    instagram: editingEnrolled.instagram,
+                    facebook: editingEnrolled.facebook,
+                    tiktok: editingEnrolled.tiktok,
+                    website: editingEnrolled.website,
+                    description: editingEnrolled.description
+                })
+                .eq('id', editingEnrolled.id);
+
+            if (error) throw error;
+
+            setEntries(entries.map(e => e.id === editingEnrolled.id ? editingEnrolled : e));
+            setEditingEnrolled(null);
+            alert('Ficha actualizada correctamente');
+        } catch (err: any) {
+            console.error(err);
+            alert('Error al actualizar la ficha: ' + err.message);
         }
     };
 
@@ -500,10 +534,13 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                                 >
                                                     {entry.isFeatured ? <StarFilledIcon /> : <StarOutlineIcon />}
                                                 </button>
-                                                <button onClick={() => setViewEntry(entry)} className="btn-icon-action text-blue" style={{marginRight: '8px'}}>
+                                                <button onClick={() => setEditingEnrolled(entry)} className="btn-icon-action text-blue" title="Editar Ficha">
+                                                    <EditIcon />
+                                                </button>
+                                                <button onClick={() => setViewEntry(entry)} className="btn-icon-action text-blue" style={{marginRight: '8px'}} title="Ver Detalle">
                                                     <EyeIcon />
                                                 </button>
-                                                <button onClick={() => handleDelete(entry.id)} className="btn-icon-action text-red">
+                                                <button onClick={() => handleDelete(entry.id)} className="btn-icon-action text-red" title="Eliminar">
                                                     <TrashIcon />
                                                 </button>
                                             </div>
@@ -571,7 +608,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                 </div>
             </div>
 
-            {/* EDIT MEMBER MODAL */}
+            {/* EDIT MEMBER MODAL (PENDING) */}
             {editingMember && (
                 <div className="modal-overlay">
                     <div className="modal-content" style={{maxWidth: '450px'}}>
@@ -616,6 +653,113 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                     </div>
                 </div>
             )}
+
+            {/* EDIT ENROLLED ENTREPRENEUR MODAL */}
+             {editingEnrolled && (
+                <div className="modal-overlay">
+                    <div className="modal-content" style={{maxWidth: '500px'}}>
+                        <button className="close-btn" onClick={() => setEditingEnrolled(null)}><XIcon /></button>
+                        <div className="modal-header">
+                            <h2>Editar Ficha Inscrito</h2>
+                            <p>Modifica los datos públicos del emprendedor.</p>
+                        </div>
+                        <form onSubmit={handleUpdateEnrolled} className="clean-form">
+                            <div className="form-row">
+                                <div className="form-group" style={{flex: 1}}>
+                                    <label>Negocio</label>
+                                    <input 
+                                        type="text" 
+                                        value={editingEnrolled.name} 
+                                        onChange={(e) => setEditingEnrolled({...editingEnrolled, name: e.target.value})}
+                                        required 
+                                    />
+                                </div>
+                                 <div className="form-group" style={{flex: 1}}>
+                                    <label>Dueño</label>
+                                    <input 
+                                        type="text" 
+                                        value={editingEnrolled.ownerName} 
+                                        onChange={(e) => setEditingEnrolled({...editingEnrolled, ownerName: e.target.value})}
+                                        required 
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Rubro</label>
+                                <select 
+                                    value={PREDEFINED_CATEGORIES.includes(editingEnrolled.category) ? editingEnrolled.category : 'Otro'}
+                                    onChange={(e) => {
+                                        if (e.target.value !== 'Otro') {
+                                            setEditingEnrolled({...editingEnrolled, category: e.target.value});
+                                        }
+                                    }}
+                                    className="form-select"
+                                >
+                                    {PREDEFINED_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                                {!PREDEFINED_CATEGORIES.includes(editingEnrolled.category) && (
+                                    <input 
+                                        type="text" 
+                                        className="input-custom-category"
+                                        value={editingEnrolled.category} 
+                                        onChange={(e) => setEditingEnrolled({...editingEnrolled, category: e.target.value})}
+                                    />
+                                )}
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group" style={{flex: 2}}>
+                                    <label>Premio</label>
+                                    <input 
+                                        type="text" 
+                                        value={editingEnrolled.prize} 
+                                        onChange={(e) => setEditingEnrolled({...editingEnrolled, prize: e.target.value})}
+                                        required 
+                                    />
+                                </div>
+                                 <div className="form-group" style={{flex: 1}}>
+                                    <label>Valor (Moneda)</label>
+                                    <input 
+                                        type="text" 
+                                        value={editingEnrolled.value} 
+                                        onChange={(e) => setEditingEnrolled({...editingEnrolled, value: e.target.value})}
+                                        required 
+                                        placeholder="Ej: S/ 50.00"
+                                    />
+                                    <span className="input-helper">Usar S/ para Soles</span>
+                                </div>
+                            </div>
+                            
+                            <div className="form-group">
+                                <label>Descripción</label>
+                                <textarea 
+                                    value={editingEnrolled.description} 
+                                    onChange={(e) => setEditingEnrolled({...editingEnrolled, description: e.target.value})}
+                                    rows={2}
+                                    className="form-textarea"
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Redes Sociales</label>
+                                <div className="social-grid">
+                                    <input type="text" placeholder="IG" value={editingEnrolled.instagram} onChange={(e) => setEditingEnrolled({...editingEnrolled, instagram: e.target.value})} />
+                                    <input type="text" placeholder="FB" value={editingEnrolled.facebook || ''} onChange={(e) => setEditingEnrolled({...editingEnrolled, facebook: e.target.value})} />
+                                    <input type="text" placeholder="TikTok" value={editingEnrolled.tiktok || ''} onChange={(e) => setEditingEnrolled({...editingEnrolled, tiktok: e.target.value})} />
+                                    <input type="text" placeholder="Web" value={editingEnrolled.website || ''} onChange={(e) => setEditingEnrolled({...editingEnrolled, website: e.target.value})} />
+                                </div>
+                            </div>
+
+                            <div className="form-footer" style={{display: 'flex', gap: '10px', marginTop: '20px'}}>
+                                <button type="button" onClick={() => setEditingEnrolled(null)} className="btn btn-outline btn-block">Cancelar</button>
+                                <button type="submit" className="btn btn-primary btn-block">Guardar Ficha</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
 
             {/* DETAIL MODAL */}
             {viewEntry && (
