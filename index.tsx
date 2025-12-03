@@ -42,6 +42,18 @@ const InstagramIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
 );
 
+const FacebookIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+);
+
+const TikTokIcon = () => (
+   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path></svg>
+);
+
+const GlobeIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+);
+
 const PhoneIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
 );
@@ -112,9 +124,19 @@ interface Entrepreneur {
   logoImage: string; // The business logo
   date: Date;
   instagram: string;
+  facebook?: string;
+  tiktok?: string;
+  website?: string;
   phone: string;
   description: string;
   category: string;
+}
+
+interface Member {
+    id: number;
+    phone: string;
+    name: string;
+    business_name: string;
 }
 
 const PREDEFINED_CATEGORIES = [
@@ -134,11 +156,13 @@ const ADMIN_PASSWORD = "ADMIN123";
 // --- ADMIN DASHBOARD COMPONENT ---
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     const [entries, setEntries] = useState<Entrepreneur[]>([]);
+    const [members, setMembers] = useState<Member[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [viewEntry, setViewEntry] = useState<Entrepreneur | null>(null);
+    const [activeTab, setActiveTab] = useState<'enrolled' | 'pending'>('enrolled');
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -157,13 +181,15 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
     const fetchData = async () => {
         setLoading(true);
-        const { data, error } = await supabase
+        
+        // Fetch Enrolled Entrepreneurs
+        const { data: entData } = await supabase
             .from('entrepreneurs')
             .select('*')
             .order('created_at', { ascending: false });
 
-        if (data) {
-             const mappedEntries: Entrepreneur[] = data.map(item => ({
+        if (entData) {
+             const mappedEntries: Entrepreneur[] = entData.map(item => ({
                   id: item.id,
                   name: item.business_name,
                   ownerName: item.owner_name,
@@ -174,11 +200,25 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   logoImage: item.logo_image_url,
                   date: new Date(item.created_at),
                   instagram: item.instagram,
+                  facebook: item.facebook,
+                  tiktok: item.tiktok,
+                  website: item.website,
                   description: item.description,
                   category: item.category
               }));
             setEntries(mappedEntries);
         }
+
+        // Fetch Raw Members (Pre-registered)
+        const { data: memData } = await supabase
+            .from('members')
+            .select('*')
+            .order('id', { ascending: false });
+        
+        if (memData) {
+            setMembers(memData);
+        }
+
         setLoading(false);
     };
 
@@ -248,10 +288,10 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     };
 
     const downloadCSV = () => {
-        const headers = ["ID", "Negocio", "Dueño", "Celular", "Premio", "Valor", "Instagram", "Categoría"];
+        const headers = ["ID", "Negocio", "Dueño", "Celular", "Premio", "Valor", "Instagram", "Facebook", "TikTok", "Categoría"];
         const csvContent = [
             headers.join(","),
-            ...entries.map(e => [e.id, e.name, e.ownerName, e.phone, e.prize, e.value, e.instagram, e.category].join(","))
+            ...entries.map(e => [e.id, e.name, e.ownerName, e.phone, e.prize, e.value, e.instagram, e.facebook || '', e.tiktok || '', e.category].join(","))
         ].join("\n");
         
         const blob = new Blob([csvContent], { type: 'text/csv' });
@@ -264,10 +304,13 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
     // Calculate Stats
     const totalValue = entries.reduce((acc, curr) => {
-        // Clean value string (remove non-digits except dots)
         const val = parseFloat(curr.value.replace(/[^0-9.]/g, '')) || 0;
         return acc + val;
     }, 0);
+
+    // Compute Pending Users (In Member table but NOT in Entrepreneurs table)
+    const enrolledPhones = new Set(entries.map(e => e.phone));
+    const pendingMembers = members.filter(m => !enrolledPhones.has(m.phone));
 
     if (!isAuthenticated) {
         return (
@@ -323,51 +366,110 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                         <h3>Valor Acumulado</h3>
                         <div className="kpi-value text-success">S/ {totalValue.toFixed(2)}</div>
                     </div>
+                    <div className="kpi-card">
+                        <h3>Pendientes de Ficha</h3>
+                        <div className="kpi-value" style={{color: '#ff9f43'}}>{pendingMembers.length}</div>
+                    </div>
+                </div>
+
+                <div className="admin-tabs">
+                    <button 
+                        className={`tab-btn ${activeTab === 'enrolled' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('enrolled')}
+                    >
+                        Inscritos ({entries.length})
+                    </button>
+                    <button 
+                        className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('pending')}
+                    >
+                        Pendientes ({pendingMembers.length})
+                    </button>
                 </div>
 
                 <div className="table-container">
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>Negocio</th>
-                                <th>Dueño</th>
-                                <th>Contacto</th>
-                                <th>Premio</th>
-                                <th>Valor</th>
-                                <th>Rubro</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {entries.map(entry => (
-                                <tr key={entry.id}>
-                                    <td>
-                                        <div className="cell-flex">
-                                            <img src={entry.logoImage} className="table-img" alt=""/>
-                                            <strong>{entry.name}</strong>
-                                        </div>
-                                    </td>
-                                    <td>{entry.ownerName}</td>
-                                    <td>
-                                        <a href={`https://wa.me/51${entry.phone}`} target="_blank" className="table-link">
-                                            {entry.phone}
-                                        </a>
-                                    </td>
-                                    <td>{entry.prize}</td>
-                                    <td>{entry.value}</td>
-                                    <td><span className="badge-cat">{entry.category}</span></td>
-                                    <td>
-                                        <button onClick={() => setViewEntry(entry)} className="btn-icon-delete" style={{marginRight: '8px', color: '#0984e3'}}>
-                                            <EyeIcon />
-                                        </button>
-                                        <button onClick={() => handleDelete(entry.id)} className="btn-icon-delete">
-                                            <TrashIcon />
-                                        </button>
-                                    </td>
+                    {activeTab === 'enrolled' ? (
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Negocio</th>
+                                    <th>Dueño</th>
+                                    <th>Contacto</th>
+                                    <th>Premio</th>
+                                    <th>Valor</th>
+                                    <th>Rubro</th>
+                                    <th>Acciones</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {entries.map(entry => (
+                                    <tr key={entry.id}>
+                                        <td>
+                                            <div className="cell-flex">
+                                                <img src={entry.logoImage} className="table-img" alt=""/>
+                                                <strong>{entry.name}</strong>
+                                            </div>
+                                        </td>
+                                        <td>{entry.ownerName}</td>
+                                        <td>
+                                            <a href={`https://wa.me/51${entry.phone}`} target="_blank" className="table-link">
+                                                {entry.phone}
+                                            </a>
+                                        </td>
+                                        <td>{entry.prize}</td>
+                                        <td>{entry.value}</td>
+                                        <td><span className="badge-cat">{entry.category}</span></td>
+                                        <td>
+                                            <button onClick={() => setViewEntry(entry)} className="btn-icon-delete" style={{marginRight: '8px', color: '#0984e3'}}>
+                                                <EyeIcon />
+                                            </button>
+                                            <button onClick={() => handleDelete(entry.id)} className="btn-icon-delete">
+                                                <TrashIcon />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Negocio Indicado</th>
+                                    <th>Celular</th>
+                                    <th>Estado</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {pendingMembers.map(member => (
+                                    <tr key={member.id}>
+                                        <td>{member.name}</td>
+                                        <td>{member.business_name}</td>
+                                        <td>{member.phone}</td>
+                                        <td><span className="badge-cat" style={{background: '#ffeaa7', color: '#d35400'}}>Pendiente</span></td>
+                                        <td>
+                                            <a 
+                                                href={`https://wa.me/51${member.phone}?text=Hola%20${member.name},%20vimos%20que%20te%20registraste%20en%20La%20Tribu%20pero%20falta%20terminar%20tu%20ficha%20con%20la%20foto%20del%20premio.%20¿Necesitas%20ayuda?`} 
+                                                target="_blank" 
+                                                className="btn-whatsapp-small"
+                                            >
+                                                <WhatsAppIcon /> Cobrar Ficha
+                                            </a>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {pendingMembers.length === 0 && (
+                                    <tr>
+                                        <td colSpan={5} style={{textAlign: 'center', padding: '30px', color: '#b2bec3'}}>
+                                            ¡Todo al día! No hay usuarios pendientes.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
 
@@ -394,12 +496,27 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                     <label>Dueño:</label> <span>{viewEntry.ownerName}</span>
                                 </div>
                                 <div className="form-group">
-                                    <label>Instagram:</label> 
-                                    <a href={`https://instagram.com/${viewEntry.instagram.replace('@','')}`} target="_blank" style={{color: '#e1306c', fontWeight: 'bold'}}>{viewEntry.instagram}</a>
+                                    <label>Redes Sociales:</label> 
+                                    <div className="social-links-list">
+                                        {viewEntry.instagram && (
+                                            <a href={`https://instagram.com/${viewEntry.instagram.replace('@','')}`} target="_blank" className="social-link-item"><InstagramIcon /> {viewEntry.instagram}</a>
+                                        )}
+                                        {viewEntry.facebook && (
+                                             <a href={viewEntry.facebook} target="_blank" className="social-link-item"><FacebookIcon /> FB</a>
+                                        )}
+                                        {viewEntry.tiktok && (
+                                             <a href={viewEntry.tiktok} target="_blank" className="social-link-item"><TikTokIcon /> TikTok</a>
+                                        )}
+                                         {viewEntry.website && (
+                                             <a href={viewEntry.website} target="_blank" className="social-link-item"><GlobeIcon /> Web</a>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="form-group">
-                                    <label>Teléfono:</label>
-                                    <a href={`https://wa.me/51${viewEntry.phone}`} target="_blank" style={{color: '#00b894', fontWeight: 'bold'}}>{viewEntry.phone}</a>
+                                    <label>WhatsApp:</label>
+                                    <a href={`https://wa.me/51${viewEntry.phone}`} target="_blank" style={{color: '#00b894', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px'}}>
+                                        <WhatsAppIcon /> {viewEntry.phone}
+                                    </a>
                                 </div>
                                 <div className="form-group">
                                     <label>Descripción:</label>
@@ -594,6 +711,9 @@ function App() {
   const [prize, setPrize] = useState('');
   const [value, setValue] = useState('');
   const [instagram, setInstagram] = useState('');
+  const [facebook, setFacebook] = useState('');
+  const [tiktok, setTiktok] = useState('');
+  const [website, setWebsite] = useState('');
   const [description, setDescription] = useState('');
   const [formCategory, setFormCategory] = useState(PREDEFINED_CATEGORIES[0]);
   const [customCategory, setCustomCategory] = useState('');
@@ -672,6 +792,9 @@ function App() {
                   logoImage: item.logo_image_url || 'https://via.placeholder.com/150x150?text=Logo',
                   date: new Date(item.created_at),
                   instagram: item.instagram,
+                  facebook: item.facebook,
+                  tiktok: item.tiktok,
+                  website: item.website,
                   description: item.description,
                   category: item.category
               }));
@@ -814,7 +937,7 @@ function App() {
             finalLogoImageUrl = await uploadImageToSupabase(logoImageFile);
         }
 
-        const formattedInsta = instagram.startsWith('@') ? instagram : `@${instagram}`;
+        const formattedInsta = instagram.startsWith('@') ? instagram : (instagram ? `@${instagram}` : '');
         const finalCategory = formCategory === 'Otro' ? customCategory.trim() : formCategory;
 
         const { error: insertError } = await supabase
@@ -829,6 +952,9 @@ function App() {
                     prize_image_url: finalPrizeImageUrl,
                     logo_image_url: finalLogoImageUrl,
                     instagram: formattedInsta,
+                    facebook: facebook,
+                    tiktok: tiktok,
+                    website: website,
                     description: description || 'Emprendedor de la tribu.',
                     category: finalCategory
                 }
@@ -847,6 +973,9 @@ function App() {
             setPrize('');
             setValue('');
             setInstagram('');
+            setFacebook('');
+            setTiktok('');
+            setWebsite('');
             setDescription('');
             setFormCategory(PREDEFINED_CATEGORIES[0]);
             setCustomCategory('');
@@ -1179,7 +1308,6 @@ function App() {
                                         <h3>{entry.name}</h3>
                                         <div className="flex-col">
                                             <span className="owner-name-small">{entry.ownerName}</span>
-                                            <span className="bio-handle">{entry.instagram}</span>
                                             <span className="category-tag"><TagIcon /> {entry.category}</span>
                                         </div>
                                     </div>
@@ -1187,14 +1315,31 @@ function App() {
                                 <div className="bio-content">
                                     <p>{entry.description}</p>
                                 </div>
-                                <div className="bio-footer">
-                                    <button className="action-btn insta" onClick={() => window.open(`https://instagram.com/${entry.instagram.replace('@','')}`, '_blank')}>
-                                        <InstagramIcon /> Seguir
-                                    </button>
-                                    <button className="action-btn whatsapp" onClick={() => window.open(`https://wa.me/51${entry.phone}`, '_blank')}>
-                                        <PhoneIcon /> Contactar
-                                    </button>
+                                <div className="bio-footer-socials">
+                                     {entry.instagram && (
+                                         <button className="social-icon-btn insta" onClick={() => window.open(`https://instagram.com/${entry.instagram.replace('@','')}`, '_blank')} title="Instagram">
+                                             <InstagramIcon />
+                                         </button>
+                                     )}
+                                     {entry.facebook && (
+                                         <button className="social-icon-btn fb" onClick={() => window.open(entry.facebook, '_blank')} title="Facebook">
+                                             <FacebookIcon />
+                                         </button>
+                                     )}
+                                     {entry.tiktok && (
+                                         <button className="social-icon-btn tiktok" onClick={() => window.open(entry.tiktok, '_blank')} title="TikTok">
+                                             <TikTokIcon />
+                                         </button>
+                                     )}
+                                     {entry.website && (
+                                         <button className="social-icon-btn web" onClick={() => window.open(entry.website, '_blank')} title="Sitio Web">
+                                             <GlobeIcon />
+                                         </button>
+                                     )}
                                 </div>
+                                <button className="btn-block action-btn whatsapp" onClick={() => window.open(`https://wa.me/51${entry.phone}`, '_blank')} style={{marginTop: '10px'}}>
+                                    <WhatsAppIcon /> WhatsApp / Contactar
+                                </button>
                             </div>
                         ))}
                         {filteredEntries.length === 0 && (
@@ -1288,9 +1433,9 @@ function App() {
                     </div>
                     <form onSubmit={handleValidationSubmit} className="clean-form">
                         <div className="form-group">
-                            <label htmlFor="validationPhone">Número de Celular</label>
+                            <label htmlFor="validationPhone">WhatsApp / Celular</label>
                             <div className="input-with-icon">
-                                <span className="input-icon"><PhoneIcon /></span>
+                                <span className="input-icon"><WhatsAppIcon /></span>
                                 <input
                                     type="tel"
                                     id="validationPhone"
@@ -1398,50 +1543,79 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="form-row">
-                      <div className="form-group" style={{ flex: 1 }}>
-                        <label htmlFor="category">Rubro / Categoría</label>
-                        <select 
-                            id="category"
-                            value={formCategory}
-                            onChange={(e) => {
-                                setFormCategory(e.target.value);
-                                if (e.target.value !== 'Otro') setCustomCategory('');
-                            }}
-                            className="form-select"
+                  <div className="form-group">
+                    <label htmlFor="category">Rubro / Categoría</label>
+                    <select 
+                        id="category"
+                        value={formCategory}
+                        onChange={(e) => {
+                            setFormCategory(e.target.value);
+                            if (e.target.value !== 'Otro') setCustomCategory('');
+                        }}
+                        className="form-select"
+                        disabled={isSubmitting}
+                    >
+                        {PREDEFINED_CATEGORIES.map(c => (
+                            <option key={c} value={c}>{c}</option>
+                        ))}
+                    </select>
+                    {formCategory === 'Otro' && (
+                         <input
+                            type="text"
+                            className="input-custom-category"
+                            placeholder="Especifica tu rubro (Ej. Veterinaria)..."
+                            value={customCategory}
+                            onChange={(e) => setCustomCategory(e.target.value)}
+                            required
                             disabled={isSubmitting}
-                        >
-                            {PREDEFINED_CATEGORIES.map(c => (
-                                <option key={c} value={c}>{c}</option>
-                            ))}
-                        </select>
-                        {formCategory === 'Otro' && (
-                             <input
-                                type="text"
-                                className="input-custom-category"
-                                placeholder="Especifica tu rubro..."
-                                value={customCategory}
-                                onChange={(e) => setCustomCategory(e.target.value)}
-                                required
-                                disabled={isSubmitting}
-                            />
-                        )}
-                      </div>
-                      <div className="form-group" style={{ flex: 1.5 }}>
-                        <label htmlFor="instagram">Instagram</label>
+                        />
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                     <label>Redes Sociales (Opcional)</label>
+                     <div className="social-grid">
                         <div className="input-with-icon">
-                            <span className="input-icon">@</span>
+                            <span className="input-icon"><InstagramIcon /></span>
                             <input
                             type="text"
-                            id="instagram"
-                            placeholder="tu_usuario"
+                            placeholder="Instagram"
                             value={instagram}
                             onChange={(e) => setInstagram(e.target.value)}
-                            required
                             disabled={isSubmitting}
                             />
                         </div>
-                      </div>
+                         <div className="input-with-icon">
+                            <span className="input-icon"><FacebookIcon /></span>
+                            <input
+                            type="text"
+                            placeholder="Link Facebook"
+                            value={facebook}
+                            onChange={(e) => setFacebook(e.target.value)}
+                            disabled={isSubmitting}
+                            />
+                        </div>
+                         <div className="input-with-icon">
+                            <span className="input-icon"><TikTokIcon /></span>
+                            <input
+                            type="text"
+                            placeholder="Link TikTok"
+                            value={tiktok}
+                            onChange={(e) => setTiktok(e.target.value)}
+                            disabled={isSubmitting}
+                            />
+                        </div>
+                         <div className="input-with-icon">
+                            <span className="input-icon"><GlobeIcon /></span>
+                            <input
+                            type="text"
+                            placeholder="Sitio Web"
+                            value={website}
+                            onChange={(e) => setWebsite(e.target.value)}
+                            disabled={isSubmitting}
+                            />
+                        </div>
+                     </div>
                   </div>
 
                   <div className="form-group">
@@ -1470,7 +1644,7 @@ function App() {
                         <input
                         type="text"
                         id="prize"
-                        placeholder="Ej. Sesión de fotos, Vale de consumo, etc."
+                        placeholder="Ej. Sesión de fotos"
                         value={prize}
                         onChange={(e) => setPrize(e.target.value)}
                         required
@@ -1577,8 +1751,10 @@ function App() {
                                   <span className="price-badge">{value}</span>
                                 </div>
                                 <p className="artwork-prize">{prize}</p>
-                                <div className="artwork-footer">
-                                    <span className="artwork-insta">{instagram.startsWith('@') ? instagram : `@${instagram}`}</span>
+                                <div className="artwork-footer" style={{display: 'flex', gap: '5px', flexWrap: 'wrap'}}>
+                                    {instagram && <span className="badge-cat" style={{fontSize: '0.7rem'}}><InstagramIcon /></span>}
+                                    {facebook && <span className="badge-cat" style={{fontSize: '0.7rem'}}><FacebookIcon /></span>}
+                                    {tiktok && <span className="badge-cat" style={{fontSize: '0.7rem'}}><TikTokIcon /></span>}
                                 </div>
                             </div>
                         </div>
