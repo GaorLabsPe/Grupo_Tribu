@@ -122,6 +122,14 @@ const EditIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
 );
 
+const ShareIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+);
+
+const CopyIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+);
+
 interface Entrepreneur {
   id: string;
   name: string; // Business Name
@@ -1031,6 +1039,8 @@ function App() {
         setViewMode('preregister');
     } else if (params.get('zona') === 'admin') {
         setViewMode('admin');
+    } else if (params.get('ver') === 'directorio') {
+        setIsDirectoryOpen(true);
     }
     
     const handleScroll = () => {
@@ -1118,6 +1128,22 @@ function App() {
   const closeDirectory = () => {
       setIsDirectoryOpen(false);
       document.body.style.overflow = 'auto';
+  };
+  
+  const handleCopyLink = () => {
+    const link = `${window.location.origin}/?ver=directorio`;
+    navigator.clipboard.writeText(link);
+    alert('Enlace del directorio copiado. ¡Compártelo!');
+  };
+
+  const handleShareWhatsAppList = () => {
+      const topEntries = entries.slice(0, 5);
+      const listText = topEntries.map(e => `👉 *${e.name}* - ${e.category}`).join('\n');
+      
+      const shareText = `🚀 *Directorio Oficial La Tribu* 🚀\nApoya a nuestros emprendedores:\n\n${listText}\n\n...y ${entries.length > 5 ? `más de ${entries.length - 5} marcas más` : 'muchos más'}.\n\n👇 Encuéntralos a todos aquí:\n${window.location.origin}/?ver=directorio`;
+      
+      navigator.clipboard.writeText(shareText);
+      alert('¡Lista copiada! Lista para pegar en WhatsApp.');
   };
 
   const closePromo = () => {
@@ -1564,6 +1590,16 @@ function App() {
                         </div>
                         <button className="close-directory-btn" onClick={closeDirectory}>
                             <XIcon /> <span>Cerrar</span>
+                        </button>
+                    </div>
+                    
+                    {/* Share Actions */}
+                    <div className="share-actions-row">
+                        <button onClick={handleCopyLink} className="share-btn-item">
+                            <ShareIcon /> Copiar Enlace
+                        </button>
+                        <button onClick={handleShareWhatsAppList} className="share-btn-item whatsapp-share">
+                            <CopyIcon /> Generar Lista WhatsApp
                         </button>
                     </div>
                     

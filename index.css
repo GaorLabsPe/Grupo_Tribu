@@ -476,6 +476,35 @@ img { max-width: 100%; display: block; }
 }
 .close-directory-btn:hover { background: #f1f1f1; color: var(--color-dark); }
 
+/* Share Actions Row */
+.share-actions-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+.share-btn-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: #f1f2f6;
+    color: var(--color-dark);
+    transition: all 0.2s;
+}
+.share-btn-item:hover { background: #dfe4ea; transform: translateY(-2px); }
+.share-btn-item.whatsapp-share {
+    background: #eaffea;
+    color: #27ae60;
+    border: 1px solid #c8e6c9;
+}
+.share-btn-item.whatsapp-share:hover { background: #dcedc8; }
+
+
 /* Filter Bar */
 .filter-bar {
     display: flex;
