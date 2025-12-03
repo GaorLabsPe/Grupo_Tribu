@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createClient } from '@supabase/supabase-js';
@@ -212,6 +211,28 @@ function DigitalCardView({ entrepreneurId, onBack }: { entrepreneurId: string, o
         fetchCard();
     }, [entrepreneurId]);
 
+    const handleShareCard = async () => {
+        if (!data) return;
+        const url = window.location.href;
+        
+        const shareData = {
+            title: `Tarjeta Digital - ${data.name}`,
+            text: `¡Hola! Te comparto mi tarjeta digital de La Tribu Emprendedores.\nNegocio: ${data.name}\nRubro: ${data.category}`,
+            url: url
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                console.log('Error sharing:', err);
+            }
+        } else {
+            navigator.clipboard.writeText(url);
+            alert('¡Enlace de tarjeta copiado al portapapeles!');
+        }
+    };
+
     if (loading) return <div className="container p-40 text-center"><LoaderIcon /> Cargando tarjeta...</div>;
     if (!data) return <div className="container p-40 text-center">Empresa no encontrada</div>;
 
@@ -225,7 +246,7 @@ function DigitalCardView({ entrepreneurId, onBack }: { entrepreneurId: string, o
                     <h1 className="dc-name">{data.name}</h1>
                     <p className="dc-category">{data.category}</p>
                     <div className="dc-verified-badge">
-                        <StarFilledIcon size={14} /> Miembro Verificado 2024
+                        <StarFilledIcon size={14} /> MIEMBRO VERIFICADO TRIBU EMPRENDEDORES
                     </div>
                 </div>
 
@@ -234,6 +255,10 @@ function DigitalCardView({ entrepreneurId, onBack }: { entrepreneurId: string, o
                     <p className="dc-owner">Gerente: {data.ownerName}</p>
                     
                     <div className="dc-links">
+                        <button onClick={handleShareCard} className="dc-btn share-card-btn" style={{background: '#6c5ce7', color: 'white'}}>
+                            <ShareIcon /> Compartir Tarjeta
+                        </button>
+
                         <a href={`https://wa.me/51${data.phone}`} target="_blank" className="dc-btn whatsapp">
                             <WhatsAppIcon /> Contactar por WhatsApp
                         </a>
