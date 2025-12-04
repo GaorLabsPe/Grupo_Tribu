@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createClient } from '@supabase/supabase-js';
@@ -1045,6 +1044,10 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('Todas');
   
+  // Animation Refs
+  const directoryRef = useRef<HTMLDivElement>(null);
+  const [isDirVisible, setIsDirVisible] = useState(false);
+
   // Admin Backdoor
   const [secretClicks, setSecretClicks] = useState(0);
 
@@ -1071,6 +1074,15 @@ function App() {
     };
     window.addEventListener('scroll', handleScroll);
     
+    // Intersection Observer for Animation
+    const observer = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting) setIsDirVisible(true);
+    }, { threshold: 0.2 });
+    
+    if (directoryRef.current) {
+        observer.observe(directoryRef.current);
+    }
+    
     const timer = setTimeout(() => {
         if (viewMode === 'landing') setIsPromoOpen(true);
     }, 1500);
@@ -1078,6 +1090,7 @@ function App() {
     return () => {
         window.removeEventListener('scroll', handleScroll);
         clearTimeout(timer);
+        if (directoryRef.current) observer.unobserve(directoryRef.current);
     }
   }, [viewMode]);
 
@@ -1265,18 +1278,64 @@ function App() {
         </div>
       </section>
 
-      {/* Community / Origins Section (UPDATED to Match Screenshot) */}
+      {/* Prize Grid Section (Static) */}
+      <section id="gallery" className="prize-marquee-section">
+        <div className="container">
+            <div className="section-head">
+                <h2 className="section-title">Premios Confirmados</h2>
+                <p className="section-desc">Todo esto te puedes llevar solo por registrarte.</p>
+            </div>
+        
+            {isLoading ? (
+                <div className="empty-box text-center">
+                    <div className="spinner-large" style={{margin: '0 auto 20px'}}><LoaderIcon /></div>
+                    <p>Cargando premios...</p>
+                </div>
+            ) : entries.length > 0 ? (
+                <div className="prize-static-grid">
+                    {entries.map((entry) => (
+                         <div key={entry.id} className="prize-grid-item">
+                            <div className="artwork-card">
+                                <div className="image-wrapper">
+                                    <img src={entry.prizeImage} alt={entry.prize} />
+                                    <span className="category-badge-overlay">{entry.category}</span>
+                                    {entry.isFeatured && <div className="featured-badge"><StarFilledIcon size={12} /> Destacado</div>}
+                                </div>
+                                <div className="artwork-info">
+                                    <div className="artwork-header">
+                                      <h4>{entry.name}</h4>
+                                      <span className="price-badge">{entry.value}</span>
+                                    </div>
+                                    <p className="artwork-prize">{entry.prize}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="empty-box text-center">
+                    <div className="icon-placeholder"><ImageIcon /></div>
+                    <h3>Aún no hay premios cargados</h3>
+                    <p>¡Avísale a tu emprendedor favorito para que se sume!</p>
+                </div>
+            )}
+        </div>
+      </section>
+
+      {/* Community / Origins Section */}
       <section className="im-section" id="community">
           <div className="container">
               <div className="im-wrapper">
                   <div className="im-card-split">
                       <div className="im-card-content">
-                          <h2 className="im-title">Forma parte de <br/><span>nuestra Tribu</span></h2>
-                          <p className="im-desc">
+                          <h2 className="im-title" style={{fontSize: '3.5rem', lineHeight: '1', marginBottom: '24px'}}>
+                              INICIATIVA DE LA COMUNIDAD DE<br/><span style={{color: 'white', textDecoration: 'underline', textDecorationColor: '#f1c40f'}}>INFOMERCADO TRIBU</span>
+                          </h2>
+                          <p className="im-desc" style={{color: 'rgba(255,255,255,0.9)', fontSize: '1.2rem'}}>
                               Hemos creado un espacio único donde los emprendedores como tú pueden encontrar el 
                               impulso, la inspiración y los recursos que necesitan para hacer realidad sus sueños empresariales.
                           </p>
-                          <a href="https://infomercado.pe/tribu/" target="_blank" className="btn-im-green">
+                          <a href="https://infomercado.pe/tribu/" target="_blank" className="btn-im-green" style={{background: 'white', color: '#e1306c', fontWeight: '800'}}>
                               INSCRÍBETE
                           </a>
                       </div>
@@ -1289,87 +1348,67 @@ function App() {
           </div>
       </section>
 
-      {/* Gallery Section */}
-      <section id="gallery" className="section">
+      {/* Directory Teaser Section (UPDATED to ANIMATED MARQUEE with NEW EFFECTS) */}
+      <section id="directory" className="directory-section-animated" ref={directoryRef}>
         <div className="container">
-            <div className="section-head">
-                <h2 className="section-title">Premios Confirmados</h2>
-                <p className="section-desc">Todo esto te puedes llevar solo por registrarte.</p>
-            </div>
-            
-            {isLoading ? (
-                <div className="empty-box">
-                    <div className="spinner-large" style={{margin: '0 auto 20px'}}><LoaderIcon /></div>
-                    <p>Cargando premios...</p>
-                </div>
-            ) : entries.length > 0 ? (
-                <div className="masonry-grid">
-                {entries.map((entry) => (
-                    <div key={entry.id} className="masonry-item">
-                        <div className="artwork-card">
-                            <div className="image-wrapper">
-                                <img src={entry.prizeImage} alt={entry.prize} />
-                                <span className="category-badge-overlay">{entry.category}</span>
-                                {entry.isFeatured && <div className="featured-badge"><StarFilledIcon size={12} /> Destacado</div>}
-                            </div>
-                            <div className="artwork-info">
-                                <div className="artwork-header">
-                                  <h4>{entry.name}</h4>
-                                  <span className="price-badge">{entry.value}</span>
-                                </div>
-                                <p className="artwork-prize">{entry.prize}</p>
-                                <div className="artwork-footer">
-                                    <span className="artwork-insta">{entry.instagram}</span>
-                                </div>
-                            </div>
-                        </div>
+             <div className="directory-teaser-modern">
+                 <div className={`dt-content sticky-col ${isDirVisible ? 'is-visible' : ''} animate-on-scroll`}>
+                    <div className="badge-pulse">
+                        <span className="pulse-dot"></span>
+                        <span>Comunidad Verificada</span>
                     </div>
-                ))}
-                </div>
-            ) : (
-                <div className="empty-box">
-                    <div className="icon-placeholder"><ImageIcon /></div>
-                    <h3>Aún no hay premios cargados</h3>
-                    <p>¡Avísale a tu emprendedor favorito para que se sume!</p>
-                </div>
-            )}
-        </div>
-      </section>
-
-      {/* Directory Teaser Section */}
-      <section id="directory" className="section bg-light">
-        <div className="container">
-             <div className="directory-teaser">
-                 <div className="teaser-content">
-                    <h2 className="section-title">Nuestros Aliados</h2>
-                    <p>
+                    <h2 className="section-title text-gradient">Nuestros Aliados</h2>
+                    <p className="section-desc" style={{marginBottom: '30px', textAlign: 'left'}}>
                         Conoce a los emprendedores que hacen posible este evento. 
-                        Compra local, apoya a la tribu.
+                        <strong> Compra local</strong>, apoya a la tribu.
                     </p>
                     <button onClick={openDirectory} className="btn btn-primary btn-large btn-with-icon">
                         <BookIcon /> Ver Directorio Completo
                     </button>
                  </div>
-                 <div className="teaser-visual">
-                    {entries.length > 0 ? (
-                        <div className="avatar-stack">
-                            {entries.slice(0, 4).map((entry, index) => (
-                                <img 
-                                    key={entry.id} 
-                                    src={entry.logoImage || entry.prizeImage} 
-                                    alt={entry.name} 
-                                    style={{ zIndex: 5 - index, left: `${index * 30}px` }}
-                                />
-                            ))}
-                            <div className="avatar-count" style={{ left: `${Math.min(entries.length, 4) * 30}px` }}>
-                                +{entries.length}
-                            </div>
-                        </div>
-                    ) : (
-                         <div className="empty-stack-placeholder">
-                             <span>Únete para aparecer aquí</span>
-                         </div>
-                    )}
+                 
+                 <div className="dt-visual-marquee">
+                    <div className="marquee-track">
+                        {/* Row 1 */}
+                        {entries.length > 0 ? (
+                            [...entries, ...entries].map((entry, index) => (
+                                <div key={`r1-${entry.id}-${index}`} className="marquee-item" title={entry.name}>
+                                    <img src={entry.logoImage || entry.prizeImage} alt={entry.name} />
+                                </div>
+                            ))
+                        ) : (
+                            [...Array(10)].map((_, i) => (
+                                <div key={i} className="marquee-item"><img src={`https://via.placeholder.com/100?text=${i+1}`} alt="placeholder" /></div>
+                            ))
+                        )}
+                    </div>
+                    {/* Add extra rows for "Wall" feel to allow sticky scroll effect */}
+                    <div className="marquee-track" style={{animationDirection: 'reverse', animationDuration: '45s'}}>
+                         {entries.length > 0 ? (
+                            [...entries, ...entries].map((entry, index) => (
+                                <div key={`r2-${entry.id}-${index}`} className="marquee-item" title={entry.name}>
+                                    <img src={entry.logoImage || entry.prizeImage} alt={entry.name} />
+                                </div>
+                            ))
+                        ) : (
+                            [...Array(10)].map((_, i) => (
+                                <div key={i} className="marquee-item"><img src={`https://via.placeholder.com/100?text=${i+1}`} alt="placeholder" /></div>
+                            ))
+                        )}
+                    </div>
+                    <div className="marquee-track" style={{animationDuration: '50s'}}>
+                         {entries.length > 0 ? (
+                            [...entries, ...entries].map((entry, index) => (
+                                <div key={`r3-${entry.id}-${index}`} className="marquee-item" title={entry.name}>
+                                    <img src={entry.logoImage || entry.prizeImage} alt={entry.name} />
+                                </div>
+                            ))
+                        ) : (
+                            [...Array(10)].map((_, i) => (
+                                <div key={i} className="marquee-item"><img src={`https://via.placeholder.com/100?text=${i+1}`} alt="placeholder" /></div>
+                            ))
+                        )}
+                    </div>
                  </div>
              </div>
         </div>
