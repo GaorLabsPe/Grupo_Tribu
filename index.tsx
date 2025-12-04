@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createClient } from '@supabase/supabase-js';
@@ -115,7 +114,7 @@ const PlusIcon = () => (
 );
 
 const EyeIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8-11-8-11-8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8-11-8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
 );
 
 const EditIcon = () => (
@@ -1049,6 +1048,9 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('Todas');
   
+  // Prize Gallery State
+  const [showAllGallery, setShowAllGallery] = useState(false);
+  
   // Animation Refs
   const directoryRef = useRef<HTMLDivElement>(null);
   const [isDirVisible, setIsDirVisible] = useState(false);
@@ -1252,7 +1254,7 @@ function App() {
                     </span>
                 </div>
                 <h1 className="hero-title">
-                  ¡GANA PREMIOS <br/> <span className="text-gradient">GRATIS PARA TU NEGOCIO!</span>
+                  ¡GANA PREMIOS <span className="word-highlight-animated">GRATIS</span> <br/> <span className="text-gradient">PARA TU NEGOCIO!</span>
                 </h1>
                 
                 <div className="hero-subtitle-container">
@@ -1263,8 +1265,8 @@ function App() {
                 </div>
 
                 <div className="hero-buttons">
-                    <button onClick={openClientModal} className="btn btn-large btn-primary">
-                        <TicketIcon /> Quiero mi Ticket
+                    <button onClick={openClientModal} className="btn btn-giant">
+                        <GiftIcon /> QUIERO MI PREMIO
                     </button>
                 </div>
 
@@ -1304,7 +1306,7 @@ function App() {
                 </div>
             ) : entries.length > 0 ? (
                 <div className="prize-static-grid">
-                    {entries.map((entry) => (
+                    {entries.slice(0, showAllGallery ? undefined : 6).map((entry) => (
                          <div key={entry.id} className="prize-grid-item">
                             <div className="artwork-card">
                                 <div className="image-wrapper">
@@ -1328,6 +1330,22 @@ function App() {
                     <div className="icon-placeholder"><ImageIcon /></div>
                     <h3>Aún no hay premios cargados</h3>
                     <p>¡Avísale a tu emprendedor favorito para que se sume!</p>
+                </div>
+            )}
+            
+            {entries.length > 6 && (
+                <div className="w-full text-center mt-medium">
+                    <button 
+                        onClick={() => setShowAllGallery(!showAllGallery)} 
+                        className="btn btn-outline"
+                        style={{ borderRadius: 'var(--radius-full)', padding: '12px 32px' }}
+                    >
+                        {showAllGallery ? (
+                            <>Ver menos premios <span style={{marginLeft: '8px', display: 'inline-block', transform: 'rotate(180deg)'}}>▼</span></>
+                        ) : (
+                            <>Ver más premios <span style={{marginLeft: '8px'}}>▼</span></>
+                        )}
+                    </button>
                 </div>
             )}
         </div>
@@ -1472,127 +1490,134 @@ function App() {
       {/* CLIENT REGISTRATION MODAL */}
       {isClientModalOpen && <ClientRegistrationModal onClose={closeClientModal} />}
 
-      {/* FULL SCREEN DIRECTORY OVERLAY */}
+      {/* FULL SCREEN DIRECTORY OVERLAY - SPLIT LAYOUT (IMPROVED) */}
       {isDirectoryOpen && (
           <div className="directory-full-overlay">
-              <div className="directory-header">
-                  <div className="container">
-                    <div className="dh-row-top">
-                        <div className="dh-title">
-                            <h2>Directorio de la Tribu</h2>
-                            <span className="badge-count">{filteredEntries.length} Marcas</span>
-                        </div>
-                        <button className="close-directory-btn" onClick={closeDirectory}>
-                            <XIcon /> <span>Cerrar</span>
-                        </button>
-                    </div>
-                    
-                    {/* Share Actions */}
-                    <div className="share-actions-row">
-                        <button onClick={handleCopyLink} className="share-btn-item">
-                            <ShareIcon /> Copiar Enlace
-                        </button>
-                        <button onClick={handleShareWhatsAppList} className="share-btn-item whatsapp-share">
-                            <CopyIcon /> Generar Lista WhatsApp
-                        </button>
-                    </div>
-                    
-                    <div className="search-bar expanded mt-medium">
-                        <SearchIcon />
-                        <input 
-                            type="text" 
-                            placeholder="Buscar por nombre, usuario o descripción..." 
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            autoFocus
-                        />
-                    </div>
-                    
-                    {/* Category Filter Bar */}
-                    <div className="filter-bar">
-                        {filterCategories.map(cat => (
-                            <button 
-                                key={cat}
-                                className={`filter-pill ${selectedCategoryFilter === cat ? 'active' : ''}`}
-                                onClick={() => setSelectedCategoryFilter(cat)}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-                    </div>
-                  </div>
-              </div>
+              <button className="close-directory-absolute" onClick={closeDirectory}>
+                 <XIcon />
+              </button>
+              
+              <div className="directory-split-container">
+                  {/* LEFT SIDEBAR (Sticky) */}
+                  <div className="directory-sidebar animate-slide-in">
+                      <div className="sidebar-header-group">
+                          <div className="badge-pulse">
+                              <span className="pulse-dot"></span>
+                              <span>Directorio en Vivo</span>
+                          </div>
+                          <h2 className="text-gradient">Directorio de la Tribu</h2>
+                          <p className="text-gray">{filteredEntries.length} Marcas aliadas</p>
+                      </div>
 
-              <div className="directory-body container">
-                 {isLoading ? (
-                     <div className="text-center p-10">Cargando directorio...</div>
-                 ) : (
-                     <div className="bio-grid">
-                        {filteredEntries.map(entry => (
-                            <div key={entry.id} className="bio-card">
-                                <div className="bio-header">
-                                    <img src={entry.logoImage || entry.prizeImage} alt={entry.name} className="bio-avatar" />
-                                    <div>
-                                        <h3>{entry.name}</h3>
-                                        <div className="flex-col">
-                                            <span className="owner-name-small">{entry.ownerName}</span>
+                      <div className="search-bar-modern mt-medium">
+                          <SearchIcon />
+                          <input 
+                              type="text" 
+                              placeholder="Buscar marcas..." 
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              autoFocus
+                          />
+                      </div>
+
+                      <div className="filters-vertical mt-medium">
+                          <span className="filter-label">Categorías</span>
+                          <div className="filter-chips-wrap">
+                            {filterCategories.map(cat => (
+                                <button 
+                                    key={cat}
+                                    className={`filter-chip ${selectedCategoryFilter === cat ? 'active' : ''}`}
+                                    onClick={() => setSelectedCategoryFilter(cat)}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                          </div>
+                      </div>
+
+                      <div className="sidebar-footer mt-auto">
+                          <div className="share-actions-column">
+                              <button onClick={handleCopyLink} className="btn btn-outline btn-block btn-with-icon">
+                                  <ShareIcon /> Copiar Enlace
+                              </button>
+                              <button onClick={handleShareWhatsAppList} className="btn btn-primary btn-block btn-with-icon">
+                                  <WhatsAppIcon /> Compartir en WhatsApp
+                              </button>
+                          </div>
+                      </div>
+                  </div>
+
+                  {/* RIGHT CONTENT (Scrollable Grid) */}
+                  <div className="directory-main-content">
+                    {isLoading ? (
+                        <div className="text-center p-40">Cargando directorio...</div>
+                    ) : (
+                        <div className="bio-grid">
+                            {filteredEntries.map((entry, index) => (
+                                <div 
+                                    key={entry.id} 
+                                    className="bio-card animate-fade-up"
+                                    style={{animationDelay: `${index * 0.05}s`}} 
+                                >
+                                    <div className="bio-header">
+                                        <img src={entry.logoImage || entry.prizeImage} alt={entry.name} className="bio-avatar" />
+                                        <div>
+                                            <h3>{entry.name}</h3>
                                             <span className="category-tag"><TagIcon /> {entry.category}</span>
                                         </div>
                                     </div>
+                                    <div className="bio-content">
+                                        <p>{entry.description}</p>
+                                    </div>
+                                    
+                                    <div className="bio-footer-socials">
+                                         {entry.instagram && (
+                                             <button className="social-icon-btn insta" onClick={() => window.open(`https://instagram.com/${entry.instagram.replace('@','')}`, '_blank')} title="Instagram">
+                                                 <InstagramIcon />
+                                             </button>
+                                         )}
+                                         {entry.facebook && (
+                                             <button className="social-icon-btn fb" onClick={() => window.open(entry.facebook, '_blank')} title="Facebook">
+                                                 <FacebookIcon />
+                                             </button>
+                                         )}
+                                         {entry.tiktok && (
+                                             <button className="social-icon-btn tiktok" onClick={() => window.open(entry.tiktok, '_blank')} title="TikTok">
+                                                 <TikTokIcon />
+                                             </button>
+                                         )}
+                                         {entry.website && (
+                                             <button className="social-icon-btn web" onClick={() => window.open(entry.website, '_blank')} title="Sitio Web">
+                                                 <GlobeIcon />
+                                             </button>
+                                         )}
+                                    </div>
+                                    
+                                    <div className="action-buttons-row">
+                                        <button className="btn-block action-btn whatsapp" onClick={() => window.open(`https://wa.me/51${entry.phone}`, '_blank')}>
+                                            <WhatsAppIcon /> Contactar
+                                        </button>
+                                        <button 
+                                            className="btn-icon-action" 
+                                            onClick={() => window.open(`/?card=${entry.id}`, '_blank')}
+                                            title="Ver Tarjeta Digital"
+                                        >
+                                            <QrIcon />
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="bio-content">
-                                    <p>{entry.description}</p>
-                                </div>
-                                <div className="bio-footer-socials">
-                                     {entry.instagram && (
-                                         <button className="social-icon-btn insta" onClick={() => window.open(`https://instagram.com/${entry.instagram.replace('@','')}`, '_blank')} title="Instagram">
-                                             <InstagramIcon />
-                                         </button>
-                                     )}
-                                     {entry.facebook && (
-                                         <button className="social-icon-btn fb" onClick={() => window.open(entry.facebook, '_blank')} title="Facebook">
-                                             <FacebookIcon />
-                                         </button>
-                                     )}
-                                     {entry.tiktok && (
-                                         <button className="social-icon-btn tiktok" onClick={() => window.open(entry.tiktok, '_blank')} title="TikTok">
-                                             <TikTokIcon />
-                                         </button>
-                                     )}
-                                     {entry.website && (
-                                         <button className="social-icon-btn web" onClick={() => window.open(entry.website, '_blank')} title="Sitio Web">
-                                             <GlobeIcon />
-                                         </button>
-                                     )}
-                                </div>
-                                <div className="action-buttons-row" style={{display: 'flex', gap: '8px'}}>
-                                    <button className="btn-block action-btn whatsapp" onClick={() => window.open(`https://wa.me/51${entry.phone}`, '_blank')} style={{flex: 3}}>
-                                        <WhatsAppIcon /> WhatsApp
+                            ))}
+                            {filteredEntries.length === 0 && (
+                                <div className="no-results">
+                                    <p>No se encontraron resultados para "{searchTerm}"</p>
+                                    <button className="btn btn-link" onClick={() => { setSearchTerm(''); setSelectedCategoryFilter('Todas'); }}>
+                                        Ver todos
                                     </button>
-                                    <button 
-                                        className="btn-icon-action" 
-                                        onClick={() => window.open(`/?card=${entry.id}`, '_blank')}
-                                        style={{flex: 1, border: '1px solid #dfe6e9', height: 'auto'}}
-                                        title="Ver Tarjeta Digital"
-                                    >
-                                        <QrIcon />
-                                    </button>
                                 </div>
-                            </div>
-                        ))}
-                        {filteredEntries.length === 0 && (
-                            <div className="no-results">
-                                <p>No se encontraron resultados para "{searchTerm}" en la categoría "{selectedCategoryFilter}"</p>
-                                <button className="btn btn-outline" onClick={() => {
-                                    setSearchTerm('');
-                                    setSelectedCategoryFilter('Todas');
-                                }}>
-                                    Ver todos
-                                </button>
-                            </div>
-                        )}
-                     </div>
-                 )}
+                            )}
+                        </div>
+                    )}
+                  </div>
               </div>
           </div>
       )}
