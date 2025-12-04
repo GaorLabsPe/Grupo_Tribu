@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createClient } from '@supabase/supabase-js';
@@ -114,7 +115,7 @@ const PlusIcon = () => (
 );
 
 const EyeIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8-11-8-11-8-11-8-11-8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
 );
 
 const EditIcon = () => (
@@ -136,6 +137,23 @@ const QrIcon = () => (
 const TicketIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18v12H3z"></path><path d="M21 6v12"></path><path d="M3 6v12"></path><path d="M3 12h18"></path><circle cx="6.5" cy="12" r="1.5" fill="currentColor"></circle><circle cx="17.5" cy="12" r="1.5" fill="currentColor"></circle></svg>
 );
+
+// --- INTERACTIVE CONFETTI COMPONENT ---
+const ConfettiBackground = () => {
+    return (
+        <div style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflow: 'hidden', pointerEvents: 'none', zIndex: 1}}>
+            {[...Array(20)].map((_, i) => (
+                <div key={i} className="confetti" style={{
+                    left: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 5}s`,
+                    backgroundColor: ['#e1306c', '#833ab4', '#fd1d1d', '#fcb045', '#00b894'][Math.floor(Math.random() * 5)],
+                    width: `${Math.random() * 10 + 5}px`,
+                    height: `${Math.random() * 10 + 5}px`
+                }}></div>
+            ))}
+        </div>
+    )
+}
 
 interface Entrepreneur {
   id: string;
@@ -440,7 +458,6 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
     const generateSeedData = async () => {
         setIsGenerating(true);
-        // ... [Seed logic omitted for brevity]
         setIsGenerating(false);
     };
 
@@ -607,7 +624,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     );
 }
 
-// --- NEW PRE-REGISTRATION WIZARD ---
+// ... [PreRegisterForm kept same]
 function PreRegisterForm({ onBack }: { onBack: () => void }) {
     const [wizardStep, setWizardStep] = useState<'lock' | 'member' | 'business' | 'success'>('lock');
     const [accessCode, setAccessCode] = useState('');
@@ -846,7 +863,7 @@ function PreRegisterForm({ onBack }: { onBack: () => void }) {
     );
 }
 
-// CLIENT REGISTRATION MODAL
+// ... [ClientRegistrationModal kept same]
 function ClientRegistrationModal({ onClose }: { onClose: () => void }) {
     const [step, setStep] = useState<'form' | 'mission' | 'ticket'>('form');
     const [name, setName] = useState('');
@@ -1207,16 +1224,22 @@ function App() {
 
       {/* Hero */}
       <section className="hero-section">
+        <ConfettiBackground />
         <div className="container">
           <div className="hero-grid">
             <div className="hero-text">
+                <div style={{display: 'inline-block', marginBottom: '24px'}}>
+                    <span className="power-statement">
+                        <StarFilledIcon size={14} /> ¡La Fiesta del Emprendimiento!
+                    </span>
+                </div>
                 <h1 className="hero-title">
                   ¡GANA PREMIOS <br/> <span className="text-gradient">INCREMENTALES!</span>
                 </h1>
                 
                 <div className="hero-subtitle-container">
                     <span className="hero-lead">Un evento único donde la comunidad premia a la comunidad.</span>
-                    <span className="power-statement">
+                    <span className="hero-lead text-dark">
                         Únete GRATIS y gana premios de nuestros emprendedores.
                     </span>
                 </div>
@@ -1240,6 +1263,30 @@ function App() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Community / Origins Section (UPDATED to Match Screenshot) */}
+      <section className="im-section" id="community">
+          <div className="container">
+              <div className="im-wrapper">
+                  <div className="im-card-split">
+                      <div className="im-card-content">
+                          <h2 className="im-title">Forma parte de <br/><span>nuestra Tribu</span></h2>
+                          <p className="im-desc">
+                              Hemos creado un espacio único donde los emprendedores como tú pueden encontrar el 
+                              impulso, la inspiración y los recursos que necesitan para hacer realidad sus sueños empresariales.
+                          </p>
+                          <a href="https://infomercado.pe/tribu/" target="_blank" className="btn-im-green">
+                              INSCRÍBETE
+                          </a>
+                      </div>
+                      <div className="im-card-logo-box">
+                          <div className="im-square-logo">iM</div>
+                          <div className="im-brand-name">infoMercado</div>
+                      </div>
+                  </div>
+              </div>
+          </div>
       </section>
 
       {/* Gallery Section */}
@@ -1289,27 +1336,8 @@ function App() {
         </div>
       </section>
 
-      {/* Community / Origins Section (Replaces Benefits) */}
-      <section className="section bg-dark text-white" id="community">
-          <div className="container">
-              <div className="community-banner">
-                  <div className="community-content text-center">
-                        <div className="icon-circle mb-medium"><UsersIcon /></div>
-                        <h2 className="section-title text-white">Iniciativa de la comunidad de <br /><span className="text-gradient">InfoMercado Tribu</span></h2>
-                        <p className="section-desc text-white-50" style={{maxWidth: '700px', margin: '0 auto 30px'}}>
-                            Este evento nace de la unión de emprendedores que creen en el poder de la colaboración. 
-                            Somos una tribu que crece junta, y ahora queremos compartir ese éxito contigo.
-                        </p>
-                        <a href="https://infomercado.pe/tribu/" target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-large">
-                            Conoce más sobre la Tribu
-                        </a>
-                  </div>
-              </div>
-          </div>
-      </section>
-
       {/* Directory Teaser Section */}
-      <section id="directory" className="section">
+      <section id="directory" className="section bg-light">
         <div className="container">
              <div className="directory-teaser">
                  <div className="teaser-content">
@@ -1371,8 +1399,11 @@ function App() {
           <div className="promo-overlay">
               <div className="promo-card">
                   <button className="promo-close" onClick={closePromo}><XIcon /></button>
+                  <div className="promo-header-curve"></div>
                   <div className="promo-content">
-                      <div className="promo-icon"><StarIcon /></div>
+                      <div className="promo-icon-floating promo-icon-animate">
+                          <StarFilledIcon size={40} color="#ff9f43" />
+                      </div>
                       <h2>¡Gana Premios Gratis!</h2>
                       <div className="promo-stats">
                           <div className="promo-stat-item">
@@ -1387,10 +1418,10 @@ function App() {
                       </div>
                       <p className="promo-text">Regístrate ahora y participa por los premios de nuestros emprendedores aliados.</p>
                       <div className="promo-actions">
-                          <button onClick={() => { closePromo(); openClientModal(); }} className="btn btn-primary btn-block">
+                          <button onClick={() => { closePromo(); openClientModal(); }} className="btn btn-large btn-block btn-sunset">
                               ¡Quiero mi Ticket!
                           </button>
-                          <button onClick={() => { closePromo(); scrollToSection('gallery'); }} className="btn btn-outline btn-block mt-small">
+                          <button onClick={() => { closePromo(); scrollToSection('gallery'); }} className="btn btn-link btn-block mt-small">
                               Ver los Premios
                           </button>
                       </div>
