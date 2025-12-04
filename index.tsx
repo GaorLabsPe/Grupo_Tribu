@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createClient } from '@supabase/supabase-js';
@@ -114,7 +115,7 @@ const PlusIcon = () => (
 );
 
 const EyeIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8-11-8-11-8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
 );
 
 const EditIcon = () => (
@@ -135,6 +136,10 @@ const QrIcon = () => (
 
 const TicketIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18v12H3z"></path><path d="M21 6v12"></path><path d="M3 6v12"></path><path d="M3 12h18"></path><circle cx="6.5" cy="12" r="1.5" fill="currentColor"></circle><circle cx="17.5" cy="12" r="1.5" fill="currentColor"></circle></svg>
+);
+
+const ArrowRightIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
 );
 
 // --- INTERACTIVE CONFETTI COMPONENT ---
@@ -1247,11 +1252,11 @@ function App() {
                     </span>
                 </div>
                 <h1 className="hero-title">
-                  ¡GANA PREMIOS <br/> <span className="text-gradient">INCREMENTALES!</span>
+                  ¡GANA PREMIOS <br/> <span className="text-gradient">GRATIS PARA TU NEGOCIO!</span>
                 </h1>
                 
                 <div className="hero-subtitle-container">
-                    <span className="hero-lead">Un evento único donde la comunidad premia a la comunidad.</span>
+                    <span className="hero-lead highlight">Un evento único donde la comunidad premia a la comunidad.</span>
                     <span className="hero-lead text-dark">
                         Únete GRATIS y gana premios de nuestros emprendedores.
                     </span>
@@ -1261,6 +1266,12 @@ function App() {
                     <button onClick={openClientModal} className="btn btn-large btn-primary">
                         <TicketIcon /> Quiero mi Ticket
                     </button>
+                </div>
+
+                {/* NEW: InfoMercado Badge in Hero */}
+                <div className="hero-im-badge mt-medium floating delay-1">
+                    <span className="im-logo-small">iM</span>
+                    <span>Iniciativa de <strong>InfoMercado Tribu</strong></span>
                 </div>
             </div>
             
@@ -1322,30 +1333,19 @@ function App() {
         </div>
       </section>
 
-      {/* Community / Origins Section */}
-      <section className="im-section" id="community">
-          <div className="container">
-              <div className="im-wrapper">
-                  <div className="im-card-split">
-                      <div className="im-card-content">
-                          <h2 className="im-title" style={{fontSize: '3.5rem', lineHeight: '1', marginBottom: '24px'}}>
-                              INICIATIVA DE LA COMUNIDAD DE<br/><span style={{color: 'white', textDecoration: 'underline', textDecorationColor: '#f1c40f'}}>INFOMERCADO TRIBU</span>
-                          </h2>
-                          <p className="im-desc" style={{color: 'rgba(255,255,255,0.9)', fontSize: '1.2rem'}}>
-                              Hemos creado un espacio único donde los emprendedores como tú pueden encontrar el 
-                              impulso, la inspiración y los recursos que necesitan para hacer realidad sus sueños empresariales.
-                          </p>
-                          <a href="https://infomercado.pe/tribu/" target="_blank" className="btn-im-green" style={{background: 'white', color: '#e1306c', fontWeight: '800'}}>
-                              INSCRÍBETE
-                          </a>
-                      </div>
-                      <div className="im-card-logo-box">
-                          <div className="im-square-logo">iM</div>
-                          <div className="im-brand-name">infoMercado</div>
-                      </div>
-                  </div>
-              </div>
-          </div>
+      {/* Slim InfoMercado Strip (Kept as well for reinforcement) */}
+      <section className="infomercado-strip">
+        <div className="container">
+            <div className="im-strip-content">
+                <div className="im-logo-white">iM</div>
+                <div className="im-text-white">
+                    <span>Iniciativa de la comunidad de <strong>InfoMercado Tribu</strong></span>
+                    <a href="https://infomercado.pe/tribu/" target="_blank" className="im-link-white">
+                        Conocer más <ArrowRightIcon/>
+                    </a>
+                </div>
+            </div>
+        </div>
       </section>
 
       {/* Directory Teaser Section (UPDATED to ANIMATED MARQUEE with NEW EFFECTS) */}

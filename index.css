@@ -284,7 +284,7 @@ a { text-decoration: none; color: inherit; }
 
 /* Hero Section - Clean & Structured */
 .hero-section {
-  padding: 180px 0 100px; /* More top padding for floating nav */
+  padding: 180px 0 80px; /* Adjusted bottom padding */
   min-height: 90vh;
   display: flex;
   align-items: center;
@@ -312,8 +312,8 @@ a { text-decoration: none; color: inherit; }
 
 .hero-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 80px;
+  grid-template-columns: 1.2fr 0.8fr; /* More space for text */
+  gap: 60px;
   align-items: center;
   position: relative;
   z-index: 2;
@@ -333,13 +333,22 @@ a { text-decoration: none; color: inherit; }
   -webkit-text-fill-color: transparent;
 }
 
+.hero-subtitle-container {
+    margin-bottom: 30px;
+}
+
 .hero-lead {
-    font-size: 1.25rem;
-    font-weight: 400;
-    color: var(--color-gray);
-    margin-bottom: 12px;
+    font-size: 1.4rem; /* Larger font size */
+    font-weight: 800; /* Extra bold */
+    color: #2d3436; /* Dark strong color */
+    margin-bottom: 8px;
     display: block;
-    line-height: 1.5;
+    line-height: 1.3;
+}
+.hero-lead.highlight {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .power-statement {
@@ -423,113 +432,92 @@ a { text-decoration: none; color: inherit; }
 }
 .section-desc { font-size: 1.1rem; color: var(--color-gray); }
 
-/* --- INFOMERCADO INITIATIVE SECTION (SYSTEM STYLE) --- */
-.im-section {
-    background: var(--primary-gradient); /* VIBRANT BRAND GRADIENT */
-    padding: 100px 0;
+
+/* --- NEW: HERO BADGE (InfoMercado) --- */
+.hero-im-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--primary-gradient);
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
     color: white;
-}
-.im-wrapper {
-    display: flex;
-    justify-content: center;
-}
-.im-card-split {
-    display: flex;
-    background: transparent;
-    max-width: 900px;
-    width: 100%;
-    gap: 0;
-    border: 1px solid rgba(255,255,255,0.3);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-}
-
-/* Left side (Text) */
-.im-card-content {
-    flex: 1;
-    background: rgba(255,255,255,0.1);
-    padding: 60px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    border-right: 1px solid rgba(255,255,255,0.2);
-    backdrop-filter: blur(5px);
-}
-.im-title {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 2rem;
-    color: white;
-    margin-bottom: 20px;
-    letter-spacing: -0.5px;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    background: none !important; /* Override general gradient rule */
-    -webkit-text-fill-color: white !important;
-}
-.im-title span { 
-    color: white; 
-} 
-
-.im-desc {
-    font-size: 1rem;
-    color: rgba(255,255,255,0.9);
-    margin-bottom: 30px;
-    line-height: 1.7;
-}
-
-.btn-im-green {
-    background: white;
-    color: var(--color-primary);
-    font-weight: 800;
-    padding: 14px 28px;
-    border-radius: var(--radius-sm);
     font-size: 0.9rem;
-    text-transform: uppercase;
-    width: fit-content;
+    box-shadow: var(--shadow-md);
+    border: 2px solid white; /* Offset border for pop */
     transition: 0.2s;
-    border: 1px solid white;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
-.btn-im-green:hover {
-    background: rgba(255,255,255,0.9);
+.hero-im-badge:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 20px rgba(253, 29, 29, 0.3);
+}
+.im-logo-small {
+    width: 28px; height: 28px;
+    background: white;
+    color: #e1306c;
+    font-family: var(--font-display);
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    flex-shrink: 0;
 }
 
-/* Right side (Logo Box) */
-.im-card-logo-box {
-    flex: 0.8;
-    background: rgba(255,255,255,0.15);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px;
-    backdrop-filter: blur(5px);
-}
-.im-square-logo {
-    width: 70px; height: 70px;
-    border: 3px solid white;
+
+/* --- SLIM INFOMERCADO STRIP --- */
+.infomercado-strip {
+    background: var(--primary-gradient);
+    padding: 20px 0;
     color: white;
-    font-weight: 700;
-    font-size: 2rem;
+    width: 100%;
+}
+.im-strip-content {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 15px;
+    gap: 20px;
+    flex-wrap: wrap;
+    text-align: center;
 }
-.im-brand-name {
-    font-size: 1.8rem;
+.im-logo-white {
+    width: 40px; height: 40px;
+    background: white;
+    color: #e1306c;
+    font-family: var(--font-display);
     font-weight: 700;
-    color: white;
-    letter-spacing: -1px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: var(--radius-sm);
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.im-text-white {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: var(--font-main);
+    font-size: 1.1rem;
+}
+.im-text-white strong { font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+.im-link-white {
+    background: rgba(255,255,255,0.2);
+    padding: 6px 16px;
+    border-radius: var(--radius-full);
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+    transition: 0.2s;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+.im-link-white:hover {
+    background: white;
+    color: #e1306c;
 }
 
 @media (max-width: 768px) {
-    .im-card-split { flex-direction: column; border-radius: var(--radius-md); }
-    .im-card-content { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.2); padding: 40px; }
-    .im-card-logo-box { padding: 40px; }
+    .im-text-white { flex-direction: column; gap: 8px; font-size: 1rem; }
 }
+
 
 /* --- PRIZE MARQUEE / GRID (Replaced Marquee with Static Grid) --- */
 .prize-marquee-section {
